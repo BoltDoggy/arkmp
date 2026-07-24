@@ -1,0 +1,130 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`classMap / inlineStyles 合并（transform-wxss 产物落到 class/style 属性） > classMap 类名追加在 baseClass 之后 1`] = `
+"<view class="arkmp-col arkmp-n0">
+  <text class="arkmp-n1">x</text>
+</view>
+"
+`;
+
+exports[`classMap / inlineStyles 合并（transform-wxss 产物落到 class/style 属性） > inlineStyles 追加在静态 style 声明之后 1`] = `
+"<view class="arkmp-col" style="gap: 24rpx; width: {{boxWidth}}">
+  <text>x</text>
+</view>
+"
+`;
+
+exports[`不支持的组件（03 篇） > Navigation → E3001 error + 替代建议 1`] = `
+"<view class="arkmp-col">
+  <!-- arkmp: unsupported Navigation -->
+</view>
+"
+`;
+
+exports[`基础组件映射（03 篇「基础组件映射表」） > Button 纯文本 → view.arkmp-btn + bindtap 1`] = `
+"<view class="arkmp-col">
+  <view class="arkmp-btn" bindtap="__n7_click">确定</view>
+</view>
+"
+`;
+
+exports[`基础组件映射（03 篇「基础组件映射表」） > Image：src + objectFit → mode 1`] = `
+"<view class="arkmp-col">
+  <image src="app.media.avatar" mode="aspectFill" />
+  <image src="{{avatar}}" />
+</view>
+"
+`;
+
+exports[`基础组件映射（03 篇「基础组件映射表」） > Text 静态文本 / Divider / Blank 1`] = `
+"<view class="arkmp-col">
+  <text>内容</text>
+  <view class="arkmp-divider" />
+  <view style="flex:1" />
+</view>
+"
+`;
+
+exports[`基础组件映射（03 篇「基础组件映射表」） > TextInput：placeholder + onChange → bindinput 1`] = `
+"<view class="arkmp-col">
+  <input placeholder="请输入" bindinput="__n4_change" />
+  <switch bindchange="__n5_change" />
+</view>
+"
+`;
+
+exports[`布局容器（03 篇「映射为 view + 基础类」） > Column({ space }) → view.arkmp-col + gap 1`] = `
+"<view class="arkmp-col" style="gap: 24rpx">
+  <text>标题</text>
+</view>
+"
+`;
+
+exports[`布局容器（03 篇「映射为 view + 基础类」） > Row / Stack / Flex / Scroll / List / Grid / Swiper 1`] = `
+"<view class="arkmp-col">
+  <view class="arkmp-row">
+    <text>a</text>
+  </view>
+  <view class="arkmp-stack" />
+  <view class="arkmp-flex" />
+  <scroll-view class="arkmp-scroll" scroll-y="true">
+    <text>b</text>
+  </scroll-view>
+  <scroll-view scroll-y="true" enhanced="true" />
+  <view class="arkmp-grid" />
+  <swiper />
+</view>
+"
+`;
+
+exports[`控制流翻译（03 篇） > ForEach → wx:for（item/index 命名 + wx:key 回退 warning） 1`] = `
+"<view class="arkmp-col">
+  <block wx:for="{{items}}" wx:for-item="item" wx:for-index="index" wx:key="index">
+    <text>{{item.title}}</text>
+  </block>
+</view>
+"
+`;
+
+exports[`控制流翻译（03 篇） > else-if 链 → wx:elif 1`] = `
+"<view class="arkmp-col">
+  <block wx:if="{{tab}} === 0">
+    <text>首页</text>
+  </block>
+  <block wx:elif="{{tab}} === 1">
+    <text>我的</text>
+  </block>
+  <block wx:else>
+    <text>其他</text>
+  </block>
+</view>
+"
+`;
+
+exports[`控制流翻译（03 篇） > if / else → wx:if / wx:else 1`] = `
+"<view class="arkmp-col">
+  <block wx:if="{{isLoading}}">
+    <arkmp-loading />
+  </block>
+  <block wx:else>
+    <text>加载完成</text>
+  </block>
+</view>
+"
+`;
+
+exports[`状态绑定表达式（03 篇） > 模板字符串 / 纯路径 / 三元路径 1`] = `
+"<view class="arkmp-col">
+  <text>点击次数：{{count}}</text>
+  <text>{{user.name}}</text>
+  <text>{{isVip ? '会员' : '游客'}}</text>
+</view>
+"
+`;
+
+exports[`自定义组件引用（03 篇） > UserCard：静态字符串字面量直写，其余包 {{}} 1`] = `
+"<view class="arkmp-col">
+  <user-card name="小明" age="{{20}}" />
+</view>
+"
+`;

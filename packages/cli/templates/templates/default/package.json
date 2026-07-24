@@ -1,0 +1,16 @@
+{
+  "name": "{{projectName}}",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ark-mp dev",
+    "build": "ark-mp build",
+    "check": "ark-mp check src/"
+  },
+  "devDependencies": {
+    "@arkmp/cli": "^0.1.0",
+    "@arkmp/types": "^0.1.0",
+    "typescript": "^5.9.3"
+  }
+}

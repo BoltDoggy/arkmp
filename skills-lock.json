@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "doc-first": {
+      "source": "BoltDoggy/skills",
+      "sourceType": "github",
+      "skillPath": "skills/doc-first/SKILL.md",
+      "computedHash": "61ade4b3098cb61c1c614531c48e0e81e43e9c71f8ccdbed7595bc27df445264"
+    },
+    "done-check": {
+      "source": "BoltDoggy/skills",
+      "sourceType": "github",
+      "skillPath": "skills/done-check/SKILL.md",
+      "computedHash": "4e99aee512c84e506a528a0a2c1430c82c4189791e2776467853f6248f948552"
+    },
+    "spec-first": {
+      "source": "BoltDoggy/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spec-first/SKILL.md",
+      "computedHash": "1c4f1a9fcc34d7ce56f48aa4bedcc52bcd6bf0ee5cebbcdab0d4943ec3e083e7"
+    }
+  }
+}

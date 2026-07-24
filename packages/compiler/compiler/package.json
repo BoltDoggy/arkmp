@@ -1,0 +1,45 @@
+{
+  "name": "@arkmp/compiler",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@arkmp/dep-graph": "workspace:*",
+    "@arkmp/diagnostics": "workspace:*",
+    "@arkmp/incremental": "workspace:*",
+    "@arkmp/ir": "workspace:*",
+    "@arkmp/mapping-components": "workspace:*",
+    "@arkmp/pipeline": "workspace:*",
+    "@arkmp/runtime": "workspace:*",
+    "@arkmp/shared": "workspace:*",
+    "@arkmp/watcher": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "tsdown": "^0.22.14",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

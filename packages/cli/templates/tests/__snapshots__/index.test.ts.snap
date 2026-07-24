@@ -1,0 +1,213 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderTemplate：default > 渲染产物快照 1`] = `
+"=== arkmp.config.ts ===
+import { defineConfig } from '@arkmp/cli';
+
+export default defineConfig({
+  appId: 'wx1234567890abcdef', // 替换为真实小程序 appId（生成 project.config.json）
+  appName: 'my-app',
+
+  compile: {
+    unitRatio: 2, // vp → rpx 换算系数
+    sourcemap: true, // js 产物 sourcemap
+    minify: false, // 构建时压缩（当前版本暂未实现，开启会告警并忽略）
+    classPrefix: '', // 样式类名前缀（多工程共存时防冲突）
+  },
+
+  window: {
+    // 全局窗口配置 → app.json.window
+    navigationBarBackgroundColor: '#ffffff',
+    navigationBarTextStyle: 'black',
+    backgroundColor: '#f5f5f5',
+  },
+
+  devServer: {
+    autoOpenDevtool: false, // dev 时自动唤起微信开发者工具
+    // devtoolPath: '/Applications/wechatwebdevtools.app', // macOS 默认路径
+  },
+});
+
+=== package.json ===
+{
+  "name": "my-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ark-mp dev",
+    "build": "ark-mp build",
+    "check": "ark-mp check src/"
+  },
+  "devDependencies": {
+    "@arkmp/cli": "^0.1.0",
+    "@arkmp/types": "^0.1.0",
+    "typescript": "^5.9.3"
+  }
+}
+
+=== src/app.ets ===
+// 应用入口（App 生命周期 + 全局配置）
+// 说明：app.ets 由编译器做最小特判（生成 App({}) 入口），内容不参与编译。
+
+=== src/components/UserCard.ets ===
+@Component
+struct UserCard {
+  name: string = '';
+
+  build() {
+    Row() {
+      Text(this.name)
+    }
+  }
+}
+
+=== src/pages/index/Index.ets ===
+@Entry({ title: '首页' })
+@Component
+struct Index {
+  @State count: number = 0;
+
+  build() {
+    Column({ space: 12 }) {
+      UserCard({ name: 'my-app' })
+      Text(\`count=\${this.count}\`).fontSize(20)
+    }
+  }
+}
+
+=== tsconfig.json ===
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ets", "src/**/*.ts", "arkmp.config.ts"]
+}
+"
+`;
+
+exports[`renderTemplate：demo > 渲染产物快照 1`] = `
+"=== arkmp.config.ts ===
+import { defineConfig } from '@arkmp/cli';
+
+export default defineConfig({
+  appId: 'wx1234567890abcdef', // 替换为真实小程序 appId（生成 project.config.json）
+  appName: 'demo-app',
+
+  compile: {
+    unitRatio: 2, // vp → rpx 换算系数
+    sourcemap: true, // js 产物 sourcemap
+    minify: false, // 构建时压缩（当前版本暂未实现，开启会告警并忽略）
+    classPrefix: '', // 样式类名前缀（多工程共存时防冲突）
+  },
+
+  window: {
+    // 全局窗口配置 → app.json.window
+    navigationBarBackgroundColor: '#ffffff',
+    navigationBarTextStyle: 'black',
+    backgroundColor: '#f5f5f5',
+  },
+
+  tabBar: {
+    // → app.json.tabBar（pages 按页面 struct 名引用）
+    pages: [
+      { name: 'Index', text: '首页' },
+      { name: 'Mine', text: '我的' },
+    ],
+  },
+
+  devServer: {
+    autoOpenDevtool: false, // dev 时自动唤起微信开发者工具
+    // devtoolPath: '/Applications/wechatwebdevtools.app', // macOS 默认路径
+  },
+});
+
+=== package.json ===
+{
+  "name": "demo-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ark-mp dev",
+    "build": "ark-mp build",
+    "check": "ark-mp check src/"
+  },
+  "devDependencies": {
+    "@arkmp/cli": "^0.1.0",
+    "@arkmp/types": "^0.1.0",
+    "typescript": "^5.9.3"
+  }
+}
+
+=== src/app.ets ===
+// 应用入口（App 生命周期 + 全局配置）
+// 说明：app.ets 由编译器做最小特判（生成 App({}) 入口），内容不参与编译。
+
+=== src/components/UserCard.ets ===
+@Component
+struct UserCard {
+  name: string = '';
+
+  build() {
+    Row() {
+      Text(this.name)
+    }
+  }
+}
+
+=== src/pages/detail/Detail.ets ===
+@Entry
+@Component
+struct Detail {
+  build() {
+    Column() {
+      Text('详情页')
+    }
+  }
+}
+
+=== src/pages/index/Index.ets ===
+@Entry({ title: '首页' })
+@Component
+struct Index {
+  @State count: number = 0;
+
+  build() {
+    Column({ space: 12 }) {
+      UserCard({ name: 'demo-app' })
+      Text(\`count=\${this.count}\`).fontSize(20)
+    }
+  }
+}
+
+=== src/pages/mine/Mine.ets ===
+@Entry({ title: '我的' })
+@Component
+struct Mine {
+  @State nickname: string = 'ArkMP 用户';
+
+  build() {
+    Column({ space: 8 }) {
+      Text(this.nickname).fontSize(18)
+    }
+  }
+}
+
+=== tsconfig.json ===
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ets", "src/**/*.ts", "arkmp.config.ts"]
+}
+"
+`;

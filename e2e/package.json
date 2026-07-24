@@ -1,0 +1,20 @@
+{
+  "name": "@arkmp/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@arkmp/compiler": "workspace:*",
+    "@arkmp/pipeline": "workspace:*",
+    "@arkmp/runtime": "workspace:*",
+    "@arkmp/diagnostics": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10",
+    "typescript": "^5.9.3",
+    "@types/node": "^24.13.3"
+  }
+}

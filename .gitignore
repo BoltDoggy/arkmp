@@ -1,0 +1,4 @@
+.specs/
+node_modules/
+dist/
+*.tsbuildinfo

@@ -1,0 +1,27 @@
+{
+  "name": "@arkmp/types",
+  "version": "0.1.0",
+  "type": "module",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts"
+    }
+  },
+  "files": [
+    "index.d.ts"
+  ],
+  "scripts": {
+    "build": "node -e \"console.log('@arkmp/types: 纯类型包，无需构建')\"",
+    "test": "tsd",
+    "typecheck": "tsc --noEmit"
+  },
+  "tsd": {
+    "directory": "tests"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "tsd": "^0.32.0",
+    "typescript": "^5.9.3"
+  }
+}

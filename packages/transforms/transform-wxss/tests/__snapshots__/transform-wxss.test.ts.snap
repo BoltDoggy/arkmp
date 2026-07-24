@@ -1,0 +1,77 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`动态样式与白名单外降级（04 篇） > 动态样式（binding）→ inlineStyles 表 1`] = `
+".arkmp-n1 {
+  font-size: 32rpx;
+}
+"
+`;
+
+exports[`动态样式与白名单外降级（04 篇） > 白名单外修饰符 → warning + 类内注释，不阻断构建 1`] = `
+".arkmp-n1 {
+  width: 200rpx;
+  /* arkmp: unsupported .blur(10) */
+}
+"
+`;
+
+exports[`布局属性（04 篇） > justifyContent / alignItems 枚举映射 1`] = `
+".arkmp-n0 {
+  justify-content: space-between;
+  align-items: center;
+}
+"
+`;
+
+exports[`特殊换算（04 篇白名单备注） > maxLines + textOverflow：单行 / 多行分流 1`] = `
+".arkmp-n1 {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.arkmp-n2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+"
+`;
+
+exports[`特殊换算（04 篇白名单备注） > position / offset / shadow / linearGradient / aspectRatio 1`] = `
+".arkmp-n1 {
+  position: absolute;
+  left: 20rpx;
+  top: 40rpx;
+  transform: translate(10rpx, 0);
+  box-shadow: 0 4rpx 16rpx #00000033;
+  background: linear-gradient(90deg, #fff 0%, #000 100%);
+  aspect-ratio: 1.5;
+}
+"
+`;
+
+exports[`静态样式 → WXSS 类（04 篇「总体策略」） > padding 对象参数展开为四值；border 组合 1`] = `
+".arkmp-n1 {
+  padding: 24rpx 0 0 32rpx;
+  border: 2rpx solid #333;
+}
+"
+`;
+
+exports[`静态样式 → WXSS 类（04 篇「总体策略」） > 单位换算：width/height/fontSize vp→rpx，百分比透传 1`] = `
+".arkmp-n1 {
+  width: 200rpx;
+  height: 100%;
+  font-size: 32rpx;
+}
+"
+`;
+
+exports[`静态样式 → WXSS 类（04 篇「总体策略」） > 重复样式组合去重为一个类 1`] = `
+".arkmp-n1 {
+  font-size: 32rpx;
+}
+"
+`;
