@@ -124,6 +124,27 @@ describe('createPage', () => {
     expect(config.onShareAppMessage).toBe(share);
   });
 
+  it('小程序原生页面生命周期名（onLoad/onShow 等）正常映射', () => {
+    const loadFn = vi.fn();
+    const showFn = vi.fn();
+    const { config, inst } = bootPage({ state: {}, methods: { onLoad: loadFn, onShow: showFn } });
+    // onLoad 被 runtime 接管用于 attachState，用户回调在内部调用
+    expect(loadFn).toHaveBeenCalledTimes(1);
+    expect(typeof config.onShow).toBe('function');
+    config.onShow!.call(inst);
+    expect(showFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('onPullDownRefresh 原生命名也自动 stopPullDownRefresh', () => {
+    const stop = vi.fn();
+    (globalThis as any).wx = { stopPullDownRefresh: stop };
+    const refresh = vi.fn();
+    const { config, inst } = bootPage({ state: {}, methods: { onPullDownRefresh: refresh } });
+    config.onPullDownRefresh!.call(inst);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(stop).toHaveBeenCalledTimes(1);
+  });
+
   it('__set 桥接入口：写入经 setData 下发', async () => {
     const { inst, setDataCalls } = bootPage({ state: { count: 0 } });
     inst.__set('count', 5);
@@ -298,6 +319,24 @@ describe('createComponent', () => {
     expect(typeof config.lifetimes.ready).toBe('function');
     config.lifetimes.ready!.call(inst);
     expect(readyFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('原生组件生命周期名（attached/ready/created）映射到 lifetimes 而非 methods', () => {
+    const createdFn = vi.fn();
+    const readyFn = vi.fn();
+    createComponent({ state: {}, methods: { created: createdFn, ready: readyFn } });
+    expect(lastComponentConfig!.methods.created).toBeUndefined();
+    expect(lastComponentConfig!.methods.ready).toBeUndefined();
+    expect(lastComponentConfig!.lifetimes.created).toBe(createdFn);
+    expect(lastComponentConfig!.lifetimes.ready).toBe(readyFn);
+  });
+
+  it('原生组件 attached 名映射到 lifetimes 并经 attachState 桥接', () => {
+    const attachedFn = vi.fn();
+    const { config } = bootComponent({ state: { inner: 1 }, methods: { attached: attachedFn } });
+    expect(config.methods.attached).toBeUndefined();
+    expect(typeof config.lifetimes.attached).toBe('function');
+    expect(attachedFn).toHaveBeenCalledTimes(1); // bootComponent 内触发
   });
 
   it('@Watch 标注的 property 生成 observers 桥接', () => {

@@ -74,6 +74,34 @@ data: { count: 0, list: [] }
 
 初始值须为编译期可序列化的字面量表达式；调用构造函数的初始值（如 `new Task('x')`）在 runtime 初始化阶段执行。
 
+### 普通成员变量 → data（非响应式初始值）
+
+```ts
+@Component
+struct UserCard {
+  name: string = '张三';   // 无装饰器 → 普通成员
+  build() { Text(this.name) }
+}
+```
+
+```js
+// 产物（JS）
+createComponent({
+  data: { name: '张三' },   // 独立 data 段，不进 state
+});
+```
+
+无装饰器的成员变量不参与响应式追踪（赋值后不自动触发刷新），但其初始值需要进入小程序 `data`，否则 WXML `{{name}}` 绑定读不到值。编译器将其初始值输出到独立的 `data` 段（与 `state` 区分），runtime 透传给小程序框架。`attachState` 只为 `state` 段字段安装访问器，`data` 段字段保持普通属性——与 ArkUI「无装饰器 = 非响应式」的语义一致。
+
+与 `@State` 的关键区别：
+
+| 行为 | `@State count = 0` | `name: string = 'x'`（普通成员） |
+| --- | --- | --- |
+| 初始值进 `data` | ✓（经 `state` → runtime 展开） | ✓（直接进 `data`） |
+| WXML `{{}}` 绑定可读 | ✓ | ✓ |
+| `this.xxx = v` 触发刷新 | ✓（编译期改写 `__set` + runtime 访问器） | ✗（普通属性，不触发 setData） |
+| `@Watch` 支持 | ✓ | ✗ |
+
 ### @Prop → properties（单向）
 
 ```ts
@@ -170,24 +198,36 @@ data: { price: 99, __derived_price_text: '¥99.00' }
 
 ## 生命周期映射
 
+ArkMP 同时支持 **ArkUI 命名**（推荐）与 **小程序原生命名**。两套命名无重名冲突（ArkUI 名如 `aboutToAppear`/`onPageShow` 与原生名如 `onLoad`/`onShow` 零交集），可以安全共存。
+
+- ArkUI 命名钩子经 analyzer 识别后存入 `model.lifecycle`，由 transform-js 按固定顺序输出，再由 runtime 映射到小程序钩子。
+- 小程序原生命名钩子经 analyzer 归入 `model.methods`（保留原始参数名），由 runtime 恒等映射（页面）或恒等映射到 `lifetimes` 块（组件），从而同时支持两套命名。
+
+推荐统一使用 ArkUI 命名以保持与 ArkUI 源码的一致性。`@arkmp/types` 对原生命名标注了 `@deprecated` JSDoc 以在 IDE 中提示。
+
 ### 页面（@Entry）
 
-| ArkUI | 小程序产物 |
-| --- | --- |
-| `aboutToAppear()` | `onLoad(options)`（路由参数注入为 options） |
-| `onPageShow()` | `onShow()` |
-| `onDidBuild()` | `onReady()` |
-| `onPageHide()` | `onHide()` |
-| `aboutToDisappear()` | `onUnload()` |
-| `onBackPress()` | 无对应：编译期 warning；返回值 true 的场景提示改用交互弹窗 |
+| ArkUI 命名（推荐） | 小程序原生命名 | 小程序产物钩子 |
+| --- | --- | --- |
+| `aboutToAppear(options)` | `onLoad(query)` | `onLoad`（路由参数注入为 options/query） |
+| `onPageShow()` | `onShow()` | `onShow` |
+| `onDidBuild()` | `onReady()` | `onReady` |
+| `onPageHide()` | `onHide()` | `onHide` |
+| `aboutToDisappear()` | `onUnload()` | `onUnload` |
+| `onPullRefresh()` | `onPullDownRefresh()` | `onPullDownRefresh`（+ 自动 `wx.stopPullDownRefresh()`） |
+| `onBackPress()` | — | 无对应：编译期 warning；返回值 true 的场景提示改用交互弹窗 |
+
+无 ArkUI 对应的小程序原生页面钩子（`onReachBottom`、`onShareAppMessage`、`onPageScroll`、`onResize`、`onTabItemTap`、`onShareTimeline`、`onAddToFavorites`）可直接使用原生命名，runtime 透传到 Page config。
 
 ### 组件（@Component）
 
-| ArkUI | 小程序 lifetimes |
-| --- | --- |
-| `aboutToAppear()` | `attached` |
-| `onDidBuild()` | `ready` |
-| `aboutToDisappear()` | `detached` |
+| ArkUI 命名（推荐） | 小程序原生命名 | 小程序 lifetimes |
+| --- | --- | --- |
+| `aboutToAppear()` | `attached()` | `attached` |
+| `onDidBuild()` | `ready()` | `ready` |
+| `aboutToDisappear()` | `detached()` | `detached` |
+| — | `created()` | `created`（组件实例创建时，早于 attached） |
+| — | `moved()` | `moved` |
 
 ### 应用（@Entry 所在的 Ability 概念）
 
@@ -209,5 +249,5 @@ export default class App {
 | ArkUI 侧表达 | 小程序产物 |
 | --- | --- |
 | `@Entry({ title: '首页', pullRefresh: true })` | 页面 json：`navigationBarTitleText`、`enablePullDownRefresh` |
-| 下拉刷新回调约定方法 `onPullRefresh()` | `onPullDownRefresh()` + 自动 `wx.stopPullDownRefresh()` |
+| 下拉刷新回调约定方法 `onPullRefresh()` / `onPullDownRefresh()` | `onPullDownRefresh()` + 自动 `wx.stopPullDownRefresh()` |
 | `List.onReachEnd()` | 页面级编译为 `onReachBottom`；scroll-view 内编译为 `bindscrolltolower` |

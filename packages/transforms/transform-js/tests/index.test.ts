@@ -137,14 +137,21 @@ describe('T24 @Prop / @Link → properties', () => {
     expect(js).toMatchSnapshot();
   });
 
-  it('plain 普通成员不进 properties', () => {
+  it('plain 普通成员：不进 properties，初始值进 data 段（非响应式）', () => {
     const { js } = transformJs(
       model({
         isEntry: false,
-        props: [{ name: 'cache', type: 'Map<string,number>', kind: 'plain' }],
+        props: [
+          { name: 'cache', type: 'Map<string,number>', kind: 'plain' },
+          { name: 'label', type: 'string', kind: 'plain', initialValue: { kind: 'static', value: 'hi' } },
+        ],
       }),
     );
     expect(js).not.toContain('properties');
+    expect(js).not.toContain('state');
+    expect(js).toContain('data: {');
+    expect(js).toContain('cache: null,');
+    expect(js).toContain('label: "hi",');
   });
 });
 
@@ -191,6 +198,17 @@ describe('T25 生命周期映射 + 方法抽取', () => {
   it('isPage 选项可覆盖 isEntry', () => {
     const { js } = transformJs(model({ isEntry: false }), { isPage: true });
     expect(js).toContain('createPage');
+  });
+
+  it('onPullRefresh 钩子出现在 methods 中', () => {
+    const { js, diagnostics } = transformJs(
+      model({
+        isEntry: true,
+        lifecycle: { onPullRefresh: 'this.refresh();' },
+      }),
+    );
+    expect(diagnostics).toEqual([]);
+    expect(js).toContain('onPullRefresh() {');
   });
 });
 

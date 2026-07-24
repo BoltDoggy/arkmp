@@ -42,7 +42,7 @@ export default defineConfig({
   "devDependencies": {
     "@arkmp/cli": "^0.1.0",
     "@arkmp/types": "^0.1.0",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }
 
@@ -140,7 +140,7 @@ export default defineConfig({
   "devDependencies": {
     "@arkmp/cli": "^0.1.0",
     "@arkmp/types": "^0.1.0",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }
 

@@ -94,6 +94,32 @@ describe('字段与方法提取', () => {
     expect(model.lifecycle).toEqual({ onDidBuild: 'this.measure();' });
   });
 
+  it('提取 onPullRefresh 生命周期钩子', () => {
+    const { model } = analyzeSource(
+      ets(`  onPullRefresh() { this.refresh(); }
+  build() { Column() { Text('a') } }`),
+    );
+    expect(model.lifecycle).toEqual({ onPullRefresh: 'this.refresh();' });
+  });
+
+  it('小程序原生命名钩子（onLoad/onShow 等）归入 methods 而非 lifecycle', () => {
+    const { model } = analyzeSource(
+      ets(`  onLoad(query) { this.init(query); }
+  onShow() { console.log('show'); }
+  onReachBottom() { this.loadMore(); }
+  aboutToAppear() { this.setup(); }
+  build() { Column() { Text('a') } }`),
+    );
+    // ArkUI 命名 → lifecycle
+    expect(model.lifecycle).toEqual({ aboutToAppear: 'this.setup();' });
+    // 原生命名 → methods（保留参数名）
+    expect(model.methods).toEqual([
+      { name: 'onLoad', params: ['query'], body: 'this.init(query);' },
+      { name: 'onShow', params: [], body: "console.log('show');" },
+      { name: 'onReachBottom', params: [], body: 'this.loadMore();' },
+    ]);
+  });
+
   it('@Entry({...}) 静态参数提取为 entryOptions', () => {
     const { model } = analyzeSource(
       `@Entry({ title: '首页', pullRefresh: true, cacheSize: -1 })\n@Component\nstruct Index {\n  build() { Column() {} }\n}\n`,

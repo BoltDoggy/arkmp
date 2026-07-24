@@ -22,6 +22,13 @@ import cac from 'cac';
 import type { CAC } from 'cac';
 import { loadConfig } from '@arkmp/config';
 import type { ResolvedConfig } from '@arkmp/config';
+
+/**
+ * 重新导出配置辅助 API，使 `arkmp.config.ts` 可统一从 `@arkmp/cli` 导入
+ * （与 07 篇文档及 @arkmp/config 沙箱 shim 的约定保持一致）。
+ */
+export { defineConfig } from '@arkmp/config';
+export type { ArkmpConfig } from '@arkmp/config';
 import { buildProject, createWatchSession } from '@arkmp/compiler';
 import { compile } from '@arkmp/pipeline';
 import { formatDiagnostic } from '@arkmp/diagnostics';
@@ -123,7 +130,19 @@ async function devCommand(): Promise<CommandResult> {
     }
   }
 
-  return success();
+  process.stdout.write('[ark-mp] watch 模式已启动，按 Ctrl+C 退出\n');
+
+  // watch 模式：保持进程存活，直到用户 Ctrl+C
+  // 注册信号处理，优雅关闭 watcher 后退出
+  const shutdown = (): void => {
+    session.close().finally(() => process.exit(0));
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+
+  // 返回永不 resolve 的 Promise，阻止 run() 返回 → process.exit 不触发
+  // 进程由 chokidar 的 FSWatcher 保活
+  return new Promise<CommandResult>(() => {});
 }
 
 // ── compile（单文件模式） ──

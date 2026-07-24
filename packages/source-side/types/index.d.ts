@@ -560,6 +560,100 @@ declare function ForEach<T>(
 ): void;
 
 // ---------------------------------------------------------------------------
+// 生命周期（05 篇「生命周期映射」）
+// ---------------------------------------------------------------------------
+
+/**
+ * 页面（@Entry）生命周期钩子。
+ *
+ * ArkMP 同时支持 ArkUI 命名（推荐）与小程序原生命名，两套命名无重名冲突。
+ * ArkUI 命名经编译器映射到对应的小程序钩子；原生命名以恒等映射透传。
+ * 推荐统一使用 ArkUI 命名以保持与 ArkUI 源码的一致性。
+ */
+interface ArkPageLifecycle {
+  // ---- ArkUI 命名（推荐） ----
+
+  /** 页面即将出现，options 为路由参数。映射到小程序 onLoad。 */
+  aboutToAppear(options?: Record<string, string>): void;
+  /** 页面显示。映射到小程序 onShow。 */
+  onPageShow(): void;
+  /** 页面首次渲染完成。映射到小程序 onReady。 */
+  onDidBuild(): void;
+  /** 页面隐藏。映射到小程序 onHide。 */
+  onPageHide(): void;
+  /** 页面即将销毁。映射到小程序 onUnload。 */
+  aboutToDisappear(): void;
+  /** 下拉刷新，结束后自动调用 wx.stopPullDownRefresh()。映射到小程序 onPullDownRefresh。 */
+  onPullRefresh(): void;
+
+  // ---- 小程序原生命名（不推荐，建议使用上方 ArkUI 命名） ----
+
+  /** @deprecated 推荐使用 aboutToAppear */
+  onLoad(query?: Record<string, string>): void;
+  /** @deprecated 推荐使用 onPageShow */
+  onShow(): void;
+  /** @deprecated 推荐使用 onDidBuild */
+  onReady(): void;
+  /** @deprecated 推荐使用 onPageHide */
+  onHide(): void;
+  /** @deprecated 推荐使用 aboutToDisappear */
+  onUnload(): void;
+  /** @deprecated 推荐使用 onPullRefresh */
+  onPullDownRefresh(): void;
+
+  // ---- 小程序原生页面钩子（无 ArkUI 对应，直接透传） ----
+
+  /** 页面滚动回调。 */
+  onPageScroll(res: { scrollTop: number }): void;
+  /** 触底回调。 */
+  onReachBottom(): void;
+  /** 用户分享回调。 */
+  onShareAppMessage(res: { from: 'button' | 'menu'; target: unknown; webViewUrl?: string }): unknown;
+  /** 朋友圈分享回调。 */
+  onShareTimeline(): unknown;
+  /** 收藏回调。 */
+  onAddToFavorites(res: { from: 'button' | 'menu'; target: unknown; webViewUrl?: string }): unknown;
+  /** 点击 tab 时回调。 */
+  onTabItemTap(res: { index: number; pagePath: string; text: string }): void;
+  /** 页面尺寸变化回调。 */
+  onResize(res: { size: { windowWidth: number; windowHeight: number } }): void;
+}
+
+/**
+ * 组件（@Component）生命周期钩子。
+ *
+ * ArkMP 同时支持 ArkUI 命名（推荐）与小程序原生命名，两套命名无重名冲突。
+ * 组件侧生命周期必须由 runtime 分发到小程序 Component 的 lifetimes 块，
+ * 因此原生命名也经恒等映射列入 runtime 映射表。
+ */
+interface ArkComponentLifecycle {
+  // ---- ArkUI 命名（推荐） ----
+
+  /** 组件即将出现。映射到小程序 lifetimes.attached。 */
+  aboutToAppear(): void;
+  /** 组件首次渲染完成。映射到小程序 lifetimes.ready。 */
+  onDidBuild(): void;
+  /** 组件即将销毁。映射到小程序 lifetimes.detached。 */
+  aboutToDisappear(): void;
+
+  // ---- 小程序原生命名（不推荐，建议使用上方 ArkUI 命名） ----
+
+  /** @deprecated 推荐使用 aboutToAppear */
+  attached(): void;
+  /** @deprecated 推荐使用 onDidBuild */
+  ready(): void;
+  /** @deprecated 推荐使用 aboutToDisappear */
+  detached(): void;
+
+  // ---- 小程序原生组件 lifetimes（无 ArkUI 对应） ----
+
+  /** 组件实例刚刚被创建，此时不能调用 setData。 */
+  created(): void;
+  /** 组件实例被移动。 */
+  moved(): void;
+}
+
+// ---------------------------------------------------------------------------
 // 路由 API（06 篇"路由适配"）
 // ---------------------------------------------------------------------------
 

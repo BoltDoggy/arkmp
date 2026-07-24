@@ -21,7 +21,9 @@ App({});
 const { createComponent } = require('../arkmp/runtime.js');
 
 createComponent({
-
+  data: {
+    name: "",
+  },
 });
 
 === components/user-card.json ===

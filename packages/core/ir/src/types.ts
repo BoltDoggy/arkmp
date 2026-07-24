@@ -106,6 +106,10 @@ export interface PropField {
  * 生命周期钩子，值为方法体源码文本（已序列化）。
  * 存在对应字段即表示组件声明了该钩子。
  * 映射表见 05 篇「生命周期映射」（onDidBuild → onReady/ready）。
+ *
+ * ArkMP 同时支持 ArkUI 命名（推荐）与小程序原生命名，两者无重名冲突。
+ * 原生命名钩子（onLoad/onShow/attached 等）经 analyzer 归入 model.methods，
+ * 由 runtime 透传/映射到对应的小程序钩子，不在本接口中声明。
  */
 export interface LifecycleHooks {
   aboutToAppear?: string;
@@ -113,6 +117,7 @@ export interface LifecycleHooks {
   onPageShow?: string;
   onPageHide?: string;
   onDidBuild?: string;
+  onPullRefresh?: string;
 }
 
 /** 普通方法（事件处理等），params/body 均已序列化。 */

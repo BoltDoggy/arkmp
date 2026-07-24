@@ -27,8 +27,23 @@ export interface AnalyzeResult {
   diagnostics: Diagnostic[];
 }
 
-/** ArkUI 生命周期钩子（05 篇映射到小程序页面/组件生命周期）。 */
-const LIFECYCLE_NAMES = ['aboutToAppear', 'aboutToDisappear', 'onPageShow', 'onPageHide', 'onDidBuild'] as const;
+/**
+ * ArkUI 生命周期钩子（05 篇映射到小程序页面/组件生命周期）。
+ * 这些钩子名经 analyzer 识别后存入 model.lifecycle，由 transform-js 按固定顺序输出，
+ * 再由 runtime 映射到小程序钩子。
+ *
+ * 小程序原生命名（onLoad/onShow/attached 等）不在此列表中——它们经 analyzer
+ * 归入 model.methods（保留原始参数名），由 runtime 透传/映射到对应钩子，
+ * 从而同时支持两套命名体系（05 篇映射表，无重名冲突）。
+ */
+const LIFECYCLE_NAMES = [
+  'aboutToAppear',
+  'aboutToDisappear',
+  'onPageShow',
+  'onPageHide',
+  'onDidBuild',
+  'onPullRefresh',
+] as const;
 
 const WHITELIST: ReadonlySet<string> = new Set(DECORATOR_WHITELIST);
 

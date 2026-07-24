@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@arkmp/parser": "workspace:*",
+    "@types/node": "^24.13.3",
     "tsdown": "^0.22.14",
     "vitest": "^4.1.10"
   }

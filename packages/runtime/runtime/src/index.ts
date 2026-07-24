@@ -29,6 +29,8 @@ type MethodsDef = Record<string, Fn>;
 
 export interface PageOptions {
   state?: StateDef;
+  /** 非响应式初始值（普通成员变量），透传给小程序 data，不安装访问器。 */
+  data?: StateDef;
   derived?: DerivedDef;
   watch?: WatchDef;
   methods?: MethodsDef;
@@ -38,6 +40,8 @@ export interface PageOptions {
 
 export interface ComponentOptions {
   state?: StateDef;
+  /** 非响应式初始值（普通成员变量），透传给小程序 data，不安装访问器。 */
+  data?: StateDef;
   properties?: Record<string, unknown>;
   derived?: DerivedDef;
   watch?: WatchDef;
@@ -64,21 +68,44 @@ export const BASE_WXSS =
   '.arkmp-text{display:inline;}\n' +
   '.arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}\n';
 
-/** ArkUI 页面生命周期 → 小程序 Page 钩子（05 篇映射表）。 */
+/**
+ * ArkUI 页面生命周期 → 小程序 Page 钩子（05 篇映射表）。
+ * ArkUI 命名映射到原生钩子；原生命名以恒等映射列入，
+ * 使两套命名在 createPage 遍历时走同一分发路径。
+ */
 const PAGE_LIFECYCLES: Record<string, string> = {
+  // ArkUI 命名 → 小程序原生钩子
   aboutToAppear: 'onLoad',
   onPageShow: 'onShow',
   onDidBuild: 'onReady',
   onPageHide: 'onHide',
   aboutToDisappear: 'onUnload',
   onPullRefresh: 'onPullDownRefresh',
+  // 小程序原生页面钩子（恒等映射，同时支持原生命名）
+  onLoad: 'onLoad',
+  onShow: 'onShow',
+  onReady: 'onReady',
+  onHide: 'onHide',
+  onUnload: 'onUnload',
+  onPullDownRefresh: 'onPullDownRefresh',
 };
 
-/** ArkUI 组件生命周期 → 小程序 lifetimes（05 篇映射表）。 */
+/**
+ * ArkUI 组件生命周期 → 小程序 lifetimes（05 篇映射表）。
+ * 原生命名以恒等映射列入，使组件原生命名钩子能正确路由到 lifetimes 块
+ * （而非被当作普通 method）。
+ */
 const COMPONENT_LIFETIMES: Record<string, string> = {
+  // ArkUI 命名 → 小程序组件 lifetimes
   aboutToAppear: 'attached',
   onDidBuild: 'ready',
   aboutToDisappear: 'detached',
+  // 小程序原生组件 lifetimes（恒等映射）
+  created: 'created',
+  attached: 'attached',
+  ready: 'ready',
+  moved: 'moved',
+  detached: 'detached',
 };
 
 function fail(message: string): never {
@@ -235,17 +262,17 @@ function resolveGlobals(name: 'Page' | 'Component'): Fn {
 export function createPage(options: PageOptions): void {
   const Page = resolveGlobals('Page');
   if (options === null || typeof options !== 'object') fail('createPage: options 必须为对象');
-  const { state = {}, derived = {}, watch = {}, methods = {}, ...rest } = options;
+  const { state = {}, data: staticData = {}, derived = {}, watch = {}, methods = {}, ...rest } = options;
   validateDerived(derived);
 
-  const config: Record<string, unknown> = { ...rest, data: { ...state } };
+  const config: Record<string, unknown> = { ...rest, data: { ...staticData, ...state } };
 
   for (const name in methods) {
     const fn = methods[name];
     const target = PAGE_LIFECYCLES[name];
     if (target === undefined) {
       config[name] = fn;
-    } else if (name === 'onPullRefresh') {
+    } else if (name === 'onPullRefresh' || name === 'onPullDownRefresh') {
       config[target] = function (this: any, ...args: unknown[]) {
         const r = fn.apply(this, args);
         const wx = (globalThis as Record<string, any>).wx;
@@ -271,7 +298,7 @@ export function createPage(options: PageOptions): void {
 export function createComponent(options: ComponentOptions): void {
   const Component = resolveGlobals('Component');
   if (options === null || typeof options !== 'object') fail('createComponent: options 必须为对象');
-  const { state = {}, properties = {}, derived = {}, watch = {}, methods = {}, ...rest } = options;
+  const { state = {}, data: staticData = {}, properties = {}, derived = {}, watch = {}, methods = {}, ...rest } = options;
   validateDerived(derived);
 
   // observers 桥接：@Watch 标注的 property 变化时触发回调（保留用户自定义 observers）
@@ -307,7 +334,7 @@ export function createComponent(options: ComponentOptions): void {
   Component({
     ...rest,
     properties,
-    data: { ...state },
+    data: { ...staticData, ...state },
     methods: compMethods,
     observers,
     lifetimes,
