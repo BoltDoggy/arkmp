@@ -203,6 +203,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@arkmp/compiler': workspace:*
+  '@arkmp/runtime': workspace:*
+
 importers:
 
   .: {}
@@ -254,11 +258,11 @@ importers:
   packages/cli/cli:
     dependencies:
       '@arkmp/compiler':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: workspace:*
+        version: link:../../compiler/compiler
       '@arkmp/runtime':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: workspace:*
+        version: link:../../runtime/runtime
       cac:
         specifier: ^6.7.14
         version: 6.7.14
@@ -350,8 +354,8 @@ importers:
   packages/compiler/compiler:
     dependencies:
       '@arkmp/runtime':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: workspace:*
+        version: link:../../runtime/runtime
       chokidar:
         specifier: ^4.0.3
         version: 4.0.3
@@ -823,12 +827,6 @@ importers:
         version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
 
 packages:
-
-  '@arkmp/compiler@0.1.1':
-    resolution: {integrity: sha512-ewXrYjeiyKjFyObODcyA56jAVgWOKn9za6cK9DMPA+pIYwpnIksKSFbD0zejgHfTcNU/QdBDJxg2LHUZZkHlpw==}
-
-  '@arkmp/runtime@0.1.1':
-    resolution: {integrity: sha512-3Ehd/5oJBJYCFTBl9E5apJw9WYPjwOEoRjidts1xI6INCC5rowxc/xU6Mae8nwsC51xa/tHgNLOXsX1IjOpITg==}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -2562,14 +2560,6 @@ packages:
     resolution: {integrity: sha512-HveMyhZPQQfR4z3xskXv5hHJW9g0KIESZW6JvUZv7Jn52FfMFUhCYL77KHBtnWGFti0KrKeTHMZVTY5AUVgFAA==}
 
 snapshots:
-
-  '@arkmp/compiler@0.1.1':
-    dependencies:
-      '@arkmp/runtime': link:packages/runtime/runtime
-      chokidar: 4.0.3
-      typescript: 5.9.3
-
-  '@arkmp/runtime@0.1.1': {}
 
   '@babel/code-frame@7.29.7':
     dependencies:

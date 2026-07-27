@@ -7,6 +7,7 @@ export type {
   IfNode,
   LifecycleHooks,
   MethodDecl,
+  ObjectExpression,
   PropField,
   StateField,
   StaticExpression,

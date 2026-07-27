@@ -145,8 +145,8 @@ describe('T52: 完整 demo 工程 build', () => {
     expect(wxml).toContain('{{count}}');
     // 事件绑定（__nX_click 形式）
     expect(wxml).toMatch(/bindtap="__n\d+_click"/);
-    // 自定义组件标签
-    expect(wxml).toMatch(/<counter/);
+    // 自定义组件标签 + props 属性绑定
+    expect(wxml).toMatch(/<counter[^>]*count="{{count}}"/);
   });
 
   it('index 页面 JS 调用 createPage 并含 __set 桥接', async () => {

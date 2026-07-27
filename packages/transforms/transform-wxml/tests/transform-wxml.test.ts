@@ -6,6 +6,7 @@ import { WXML_DIAGNOSTIC_CODES, expressionText, transformWxml } from '../src/ind
 
 const st = (value: unknown): Expression => ({ kind: 'static', value });
 const bd = (path: string, template?: string): Expression => ({ kind: 'binding', path, template });
+const obj = (properties: Record<string, Expression>): Expression => ({ kind: 'object', properties });
 
 interface NodeInit {
   params?: Expression[];
@@ -232,6 +233,26 @@ describe('自定义组件引用（03 篇）', () => {
     expect(diagnostics).toEqual([]);
     expect(wxml).toContain('<user-card name="小明" age="{{20}}" />');
     expect(wxml).toMatchSnapshot();
+  });
+
+  it('StatusTag({ status: this.status }) → status="{{status}}"', () => {
+    const tree = root(
+      ui('n1', 'StatusTag', { params: [obj({ status: bd('status') })] }),
+    );
+    const { wxml, diagnostics } = transformWxml(tree);
+    expect(diagnostics).toEqual([]);
+    expect(wxml).toContain('<status-tag status="{{status}}" />');
+  });
+
+  it('混合静态与绑定 props：name 直写，count 包 {{}}', () => {
+    const tree = root(
+      ui('n1', 'UserCard', {
+        params: [obj({ name: st('小明'), count: bd('count') })],
+      }),
+    );
+    const { wxml, diagnostics } = transformWxml(tree);
+    expect(diagnostics).toEqual([]);
+    expect(wxml).toContain('<user-card name="小明" count="{{count}}" />');
   });
 });
 

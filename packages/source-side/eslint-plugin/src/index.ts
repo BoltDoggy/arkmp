@@ -15,6 +15,7 @@ import { noSideEffectInBuild } from './rules/no-side-effect-in-build.js';
 import { noUiCallOutsideBuild } from './rules/no-ui-call-outside-build.js';
 import { noUnknownDecorator } from './rules/no-unknown-decorator.js';
 import { noUnsupportedComponent } from './rules/no-unsupported-component.js';
+import { noVar } from './rules/no-var.js';
 import { noWrapBuilder } from './rules/no-wrap-builder.js';
 import { requireLiteralDecoratorArgs } from './rules/require-literal-decorator-args.js';
 import { singleRootNode } from './rules/single-root-node.js';
@@ -33,13 +34,15 @@ export const rules = {
   'no-degraded-capability': noDegradedCapability,
   'no-miniprogram-api': noMiniprogramApi,
   'require-literal-decorator-args': requireLiteralDecoratorArgs,
+  'no-var': noVar,
 } as const;
 
 export type RuleName = keyof typeof rules;
 
 /**
  * recommended 规则级别：与 08 篇诊断级别对齐——
- * E 级（编译期 error）为 'error'，W 级（降级提示）为 'warn'。
+ * E 级（编译期 error）为 'error'，W 级（降级提示）为 'warn'；
+ * 「ArkTS 编码风格建议」类规则（如 no-var，无编译期诊断码）同为 'warn'。
  */
 export const recommendedRules: Record<`arkmp/${RuleName}`, 'error' | 'warn'> = {
   'arkmp/no-unknown-decorator': 'error',
@@ -55,6 +58,7 @@ export const recommendedRules: Record<`arkmp/${RuleName}`, 'error' | 'warn'> = {
   'arkmp/no-degraded-capability': 'warn',
   'arkmp/no-miniprogram-api': 'error',
   'arkmp/require-literal-decorator-args': 'error',
+  'arkmp/no-var': 'warn',
 };
 
 const plugin = {

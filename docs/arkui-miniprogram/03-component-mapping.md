@@ -123,15 +123,25 @@ Text(this.isVip ? '会员' : '游客')          →  <text>{{isVip ? '会员' : 
 ## 自定义组件引用
 
 ```ts
+// 静态 props
 UserCard({ name: '小明', age: 20 })
+
+// 动态 props（含状态绑定）
+StatusTag({ status: this.status })
+
+// 混合
+Counter({ label: '计数', count: this.count })
 ```
 
 ```html
 <!-- 页面 json 自动生成 usingComponents -->
 <user-card name="小明" age="{{20}}" />
+<status-tag status="{{status}}" />
+<counter label="计数" count="{{count}}" />
 ```
 
 - 静态字符串属性直接写字符串字面量；其余一律包 `{{}}`。
+- 构造参数为对象字面量时，逐属性拆分为 WXML 属性绑定（保留 key→value 结构）。
 - 回调参数（如 `onChange: (v) => {...}`）编译为 `bind:change`，组件内部 `triggerEvent`（见 05 篇）。
 
 ## @Builder → template / 组件抽取

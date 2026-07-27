@@ -19,6 +19,11 @@ function validateExpression(expr: Expression, where: string, out: Diagnostic[]):
       message: `绑定表达式缺少状态路径（${where}）`,
     });
   }
+  if (expr.kind === 'object') {
+    for (const value of Object.values(expr.properties)) {
+      validateExpression(value, where, out);
+    }
+  }
 }
 
 /**

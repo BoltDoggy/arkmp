@@ -10,8 +10,10 @@
  * - `static`：纯静态表达式，编译期可求值，如 `.fontSize(20)` 的 `20`
  * - `binding`：依赖状态的表达式，进 WXML `{{}}` 绑定，
  *   如 `` `count=${this.count}` `` → `{ kind: 'binding', path: 'count', template: 'count=${0}' }`
+ * - `object`：含绑定字段的对象字面量（自定义组件 props），
+ *   如 `{ status: this.status, label: 'OK' }` → 逐属性分类，保留 key 结构。
  */
-export type Expression = StaticExpression | BindingExpression;
+export type Expression = StaticExpression | BindingExpression | ObjectExpression;
 
 export interface StaticExpression {
   kind: 'static';
@@ -25,6 +27,17 @@ export interface BindingExpression {
   path: string;
   /** 模板字符串，用 `${0}` 占位 path 求值结果；纯路径绑定可省略 */
   template?: string;
+}
+
+/**
+ * 含绑定字段的对象字面量（自定义组件构造参数）。
+ * 当对象字面量无法整体静态求值时，逐属性分类以保留 key→value 结构，
+ * 供 transform-wxml 拆分为逐属性 WXML 绑定（如 `status="{{status}}"`）。
+ */
+export interface ObjectExpression {
+  kind: 'object';
+  /** 属性名 → 分类后的表达式 */
+  properties: Record<string, Expression>;
 }
 
 /** 链式样式调用，如 `.fontSize(20)` → `{ name: 'fontSize', args: [static 20] }` */

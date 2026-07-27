@@ -178,6 +178,36 @@ function classifyTemplate(expr: ts.TemplateExpression, sourceFile: ts.SourceFile
   };
 }
 
+/** 取对象属性名；不支持的计算属性名返回 null。 */
+function propKey(name: ts.PropertyName): string | null {
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name)) return name.text;
+  if (ts.isNumericLiteral(name)) return name.text;
+  return null;
+}
+
+/**
+ * 对象字面量 → { kind: 'object', properties }：逐属性分类。
+ * 展开运算符、方法简写、计算属性名等不支持时退回源码文本。
+ */
+function classifyObjectLiteral(
+  expr: ts.ObjectLiteralExpression,
+  sourceFile: ts.SourceFile,
+): Expression {
+  const properties: Record<string, Expression> = {};
+  for (const prop of expr.properties) {
+    if (!ts.isPropertyAssignment(prop)) {
+      // 展开运算符 / 方法简写 / get/set 访问器：退回源码文本
+      return { kind: 'static', value: expr.getText(sourceFile) };
+    }
+    const key = propKey(prop.name);
+    if (key === null) {
+      return { kind: 'static', value: expr.getText(sourceFile) };
+    }
+    properties[key] = classifyExpression(prop.initializer, sourceFile);
+  }
+  return { kind: 'object', properties };
+}
+
 /**
  * 将 ts 表达式序列化为 IR Expression。
  */
@@ -191,6 +221,11 @@ export function classifyExpression(expr: ts.Expression, sourceFile: ts.SourceFil
   const direct = dottedPath(expr);
   if (direct !== null && (ts.isPropertyAccessExpression(expr) || ts.isIdentifier(expr))) {
     return { kind: 'binding', path: direct };
+  }
+
+  // 对象字面量：逐属性分类（保留 key→value 结构，供自定义组件 props 拆分）
+  if (ts.isObjectLiteralExpression(expr)) {
+    return classifyObjectLiteral(expr, sourceFile);
   }
 
   // 复合表达式：`this.count + 1` → { kind: 'binding', path: 'count', template: '${0} + 1' }

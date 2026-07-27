@@ -54,7 +54,7 @@ interface UINode {
 
 `ComponentModel` 即核心 IR。IR 与两端语法解耦：
 
-- 不引用任何 `ts.Node`，所有表达式已序列化为可求值的描述（`{ kind: 'static', value: 20 }` 或 `{ kind: 'binding', path: 'count', template: 'count=${0}' }`）。
+- 不引用任何 `ts.Node`，所有表达式已序列化为可求值的描述（`{ kind: 'static', value: 20 }`、`{ kind: 'binding', path: 'count', template: 'count=${0}' }` 或 `{ kind: 'object', properties: { status: ... } }`）。
 - 附加目标无关的元信息：每个 UI 节点分配稳定 id（`n0`, `n1`…），用于样式类名与事件名生成。
 
 ## ④ transform：四条转换链

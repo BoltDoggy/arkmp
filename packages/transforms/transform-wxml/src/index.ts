@@ -212,7 +212,7 @@ class WxmlRenderer {
       const call = node.styleCalls.find((c) => c.name === rule.name);
       const arg = call?.args[0];
       if (arg === undefined) continue;
-      if (arg.kind === 'binding') {
+      if (arg.kind === 'binding' || arg.kind === 'object') {
         attrs.push(attr(rule.attribute, expressionText(arg)));
       } else {
         const raw = String(arg.value);
@@ -248,7 +248,11 @@ class WxmlRenderer {
     }
     const first = node.params[0];
     if (first !== undefined) {
-      if (first.kind === 'static' && isPlainObject(first.value)) {
+      if (first.kind === 'object') {
+        for (const [key, value] of Object.entries(first.properties)) {
+          attrs.push(attr(key, expressionText(value)));
+        }
+      } else if (first.kind === 'static' && isPlainObject(first.value)) {
         for (const [key, value] of Object.entries(first.value)) {
           attrs.push(
             typeof value === 'string' ? attr(key, value) : attr(key, `{{${String(value)}}}`),
@@ -379,17 +383,24 @@ function pickParam(node: UINode, arg: number | string): Expression | undefined {
   if (first?.kind === 'static' && isPlainObject(first.value) && arg in first.value) {
     return { kind: 'static', value: first.value[arg] };
   }
+  if (first?.kind === 'object' && arg in first.properties) {
+    return first.properties[arg];
+  }
   return undefined;
 }
 
 /**
  * 表达式 → WXML 文本（03 篇「状态绑定表达式」）。
  * - static：字面量原样输出；
- * - binding：纯路径 → `{{path}}`；带模板 → `${0}` 占位替换为 `{{path}}`。
+ * - binding：纯路径 → `{{path}}`；带模板 → `${0}` 占位替换为 `{{path}}`；
+ * - object：不应在文本/属性值上下文出现（仅用于组件 params 拆分），降级为 JSON 文本。
  */
 export function expressionText(expr: Expression): string {
   if (expr.kind === 'static') {
     return String(expr.value);
+  }
+  if (expr.kind === 'object') {
+    return JSON.stringify(expr.properties);
   }
   if (expr.template === undefined) {
     return `{{${expr.path}}}`;

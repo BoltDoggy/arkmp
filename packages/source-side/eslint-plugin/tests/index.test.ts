@@ -5,7 +5,7 @@ import plugin, { configs, recommendedRules, rules } from '../src/index.js';
 describe('插件导出', () => {
   it('default 导出含 meta/rules/configs', () => {
     expect(plugin.meta.name).toBe('@arkmp/eslint-plugin');
-    expect(Object.keys(plugin.rules)).toHaveLength(13);
+    expect(Object.keys(plugin.rules)).toHaveLength(14);
     expect(plugin.configs).toBe(configs);
   });
 
@@ -21,14 +21,21 @@ describe('插件导出', () => {
     }
   });
 
-  it('W 级规则（降级提示）在 recommended 中为 warn，其余为 error', () => {
+  it('W 级规则（降级提示）与风格建议规则在 recommended 中为 warn，其余为 error', () => {
+    const warnRules = new Set([
+      'arkmp/no-dynamic-this-access',
+      'arkmp/no-degraded-capability',
+      'arkmp/no-var',
+    ]);
     expect(recommendedRules['arkmp/no-dynamic-this-access']).toBe('warn');
     expect(recommendedRules['arkmp/no-degraded-capability']).toBe('warn');
+    expect(recommendedRules['arkmp/no-var']).toBe('warn');
     for (const [name, level] of Object.entries(recommendedRules)) {
-      if (name === 'arkmp/no-dynamic-this-access' || name === 'arkmp/no-degraded-capability') {
-        continue;
+      if (warnRules.has(name)) {
+        expect(level, name).toBe('warn');
+      } else {
+        expect(level, name).toBe('error');
       }
-      expect(level, name).toBe('error');
     }
   });
 

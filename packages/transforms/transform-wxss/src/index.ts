@@ -439,7 +439,11 @@ function bindingText(expr: Extract<Expression, { kind: 'binding' }>): string {
 /** 序列化调用参数（用于诊断与注释），如 `.blur(10)` 的 `10`。 */
 function serializeArgs(call: StyleCall): string {
   return call.args
-    .map((a) => (a.kind === 'static' ? JSON.stringify(a.value) : `{{${a.path}}}`))
+    .map((a) => {
+      if (a.kind === 'static') return JSON.stringify(a.value);
+      if (a.kind === 'object') return JSON.stringify(a.properties);
+      return a.template === undefined ? `{{${a.path}}}` : `{{${a.template}}}`;
+    })
     .join(', ');
 }
 

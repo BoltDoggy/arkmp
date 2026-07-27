@@ -16,7 +16,7 @@ L6 source-side（独立子树）。
 
 ### `rules`
 
-全部 13 条规则的对象表，键为规则名（如 `'no-unknown-decorator'`）。每条规则基于 `@typescript-eslint/utils` 的 `RuleCreator` 创建，文档链接统一指向 08 篇对应锚点。
+全部 14 条规则的对象表，键为规则名（如 `'no-unknown-decorator'`）。每条规则基于 `@typescript-eslint/utils` 的 `RuleCreator` 创建，文档链接统一指向 08 篇对应锚点。其中 13 条对应编译期限制（08 篇 E1xxx / W2xxx / E3xxx），1 条为 ArkTS 编码风格建议（`no-var`，无编译期诊断码）。
 
 ### `recommendedRules: Record<'arkmp/${RuleName}', 'error' | 'warn'>`
 
@@ -51,6 +51,7 @@ ESLint 插件对象，含 `meta`（`name`/`version`）、`rules`、`configs`。
 | `no-degraded-capability` | warn | 提示将降级处理的 ArkUI 能力（08 篇组件能力表，warning 级） |
 | `no-miniprogram-api` | error | 禁止直接使用 `wx.*` / `this.data` / `setData` 等产物 API（08 篇 E3xxx） |
 | `require-literal-decorator-args` | error | `@Watch`/`@StorageLink` 参数必须为字符串字面量（编译期静态求值） |
+| `no-var` | warn | 禁止 `var` 声明，改用 `let` / `const`（08 篇 ArkTS 编码风格建议，非编译限制） |
 
 ## 用法示例
 
