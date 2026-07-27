@@ -1,10 +1,10 @@
 {
   "name": "@arkmp/cli",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "ArkMP 命令行入口（ark-mp）",
   "type": "module",
   "bin": {
-    "ark-mp": "./dist/cli.mjs"
+    "ark-mp": "dist/cli.mjs"
   },
   "exports": {
     ".": {
@@ -27,20 +27,20 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@arkmp/compiler": "workspace:*",
+    "@arkmp/compiler": "^0.1.2",
+    "@arkmp/runtime": "^0.1.1",
+    "cac": "^6.7.14",
+    "typescript": "^5.9.0"
+  },
+  "devDependencies": {
     "@arkmp/config": "workspace:*",
     "@arkmp/devtool": "workspace:*",
     "@arkmp/diagnostics": "workspace:*",
     "@arkmp/pipeline": "workspace:*",
-    "@arkmp/runtime": "workspace:*",
     "@arkmp/shared": "workspace:*",
     "@arkmp/templates": "workspace:*",
-    "cac": "^6.7.14"
-  },
-  "devDependencies": {
     "@types/node": "^24.13.3",
     "tsdown": "^0.22.14",
-    "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
 }

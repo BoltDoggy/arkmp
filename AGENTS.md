@@ -152,7 +152,7 @@ e2e 覆盖三类场景：
 新增包照 `packages/core/shared` 的形态复制：
 
 - `package.json`：`"type": "module"`，`exports` 指向 `dist/index.{mjs,cjs}` + `dist/index.d.{mts,cts}`；内部包标 `"private": true`；workspace 内依赖用 `"workspace:*"`。
-- `tsdown.config.ts`：`entry: ['src/index.ts']`，`format: ['esm', 'cjs']`，`dts: true`，`sourcemap: true`，`clean: true`。
+- `tsdown.config.ts`：`entry: ['src/index.ts']`，`format: ['esm', 'cjs']`，`dts: true`，`sourcemap: true`，`clean: true`。**对外发布包**（`@arkmp/compiler`、`@arkmp/cli`）额外配置 `deps: { neverBundle: true, alwaysBundle: [/^@arkmp\\/(?!已发布包)/] }`，将私有内部包打进 bundle —— 发布到 npm 后不再依赖 workspace；其余 `@arkmp/*` 包按是否已发布决定 external 与否。bundle 产物里 external 的第三方包（如 `typescript`、`chokidar`）须同步加入 `dependencies`。
 - `tsconfig.json`：`extends` 根 `tsconfig.base.json`，`include: ["src", "tests"]`。
 - `src/index.ts`：包入口，re-export 公开 API。
 - `tests/`：Vitest 单测，每个包可独立 `pnpm test`。

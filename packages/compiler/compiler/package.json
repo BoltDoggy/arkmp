@@ -1,6 +1,6 @@
 {
   "name": "@arkmp/compiler",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "type": "module",
   "exports": {
     ".": {
@@ -26,20 +26,21 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@arkmp/runtime": "^0.1.1",
+    "chokidar": "^4.0.3",
+    "typescript": "^5.9.0"
+  },
+  "devDependencies": {
     "@arkmp/dep-graph": "workspace:*",
     "@arkmp/diagnostics": "workspace:*",
     "@arkmp/incremental": "workspace:*",
     "@arkmp/ir": "workspace:*",
     "@arkmp/mapping-components": "workspace:*",
     "@arkmp/pipeline": "workspace:*",
-    "@arkmp/runtime": "workspace:*",
     "@arkmp/shared": "workspace:*",
-    "@arkmp/watcher": "workspace:*"
-  },
-  "devDependencies": {
+    "@arkmp/watcher": "workspace:*",
     "@types/node": "^24.13.3",
     "tsdown": "^0.22.14",
-    "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
 }

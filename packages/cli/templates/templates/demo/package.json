@@ -9,8 +9,8 @@
     "check": "ark-mp check src/"
   },
   "devDependencies": {
-    "@arkmp/cli": "^0.1.0",
-    "@arkmp/types": "^0.1.0",
-    "typescript": "^7.0.2"
+    "@arkmp/cli": "^0.1.2",
+    "@arkmp/types": "^0.1.1",
+    "typescript": "^5.9.0"
   }
 }

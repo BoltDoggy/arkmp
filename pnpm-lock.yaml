@@ -254,8 +254,18 @@ importers:
   packages/cli/cli:
     dependencies:
       '@arkmp/compiler':
-        specifier: workspace:*
-        version: link:../../compiler/compiler
+        specifier: ^0.1.1
+        version: 0.1.1
+      '@arkmp/runtime':
+        specifier: ^0.1.1
+        version: 0.1.1
+      cac:
+        specifier: ^6.7.14
+        version: 6.7.14
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+    devDependencies:
       '@arkmp/config':
         specifier: workspace:*
         version: link:../config
@@ -268,28 +278,18 @@ importers:
       '@arkmp/pipeline':
         specifier: workspace:*
         version: link:../../compiler/pipeline
-      '@arkmp/runtime':
-        specifier: workspace:*
-        version: link:../../runtime/runtime
       '@arkmp/shared':
         specifier: workspace:*
         version: link:../../core/shared
       '@arkmp/templates':
         specifier: workspace:*
         version: link:../templates
-      cac:
-        specifier: ^6.7.14
-        version: 6.7.14
-    devDependencies:
       '@types/node':
         specifier: ^24.13.3
         version: 24.13.3
       tsdown:
         specifier: ^0.22.14
-        version: 0.22.14(typescript@7.0.2)
-      typescript:
-        specifier: ^7.0.2
-        version: 7.0.2
+        version: 0.22.14(typescript@5.9.3)
       vitest:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
@@ -349,6 +349,16 @@ importers:
 
   packages/compiler/compiler:
     dependencies:
+      '@arkmp/runtime':
+        specifier: ^0.1.1
+        version: 0.1.1
+      chokidar:
+        specifier: ^4.0.3
+        version: 4.0.3
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+    devDependencies:
       '@arkmp/dep-graph':
         specifier: workspace:*
         version: link:../dep-graph
@@ -367,25 +377,18 @@ importers:
       '@arkmp/pipeline':
         specifier: workspace:*
         version: link:../pipeline
-      '@arkmp/runtime':
-        specifier: workspace:*
-        version: link:../../runtime/runtime
       '@arkmp/shared':
         specifier: workspace:*
         version: link:../../core/shared
       '@arkmp/watcher':
         specifier: workspace:*
         version: link:../watcher
-    devDependencies:
       '@types/node':
         specifier: ^24.13.3
         version: 24.13.3
       tsdown:
         specifier: ^0.22.14
-        version: 0.22.14(typescript@7.0.2)
-      typescript:
-        specifier: ^7.0.2
-        version: 7.0.2
+        version: 0.22.14(typescript@5.9.3)
       vitest:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
@@ -820,6 +823,12 @@ importers:
         version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
 
 packages:
+
+  '@arkmp/compiler@0.1.1':
+    resolution: {integrity: sha512-ewXrYjeiyKjFyObODcyA56jAVgWOKn9za6cK9DMPA+pIYwpnIksKSFbD0zejgHfTcNU/QdBDJxg2LHUZZkHlpw==}
+
+  '@arkmp/runtime@0.1.1':
+    resolution: {integrity: sha512-3Ehd/5oJBJYCFTBl9E5apJw9WYPjwOEoRjidts1xI6INCC5rowxc/xU6Mae8nwsC51xa/tHgNLOXsX1IjOpITg==}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -2553,6 +2562,14 @@ packages:
     resolution: {integrity: sha512-HveMyhZPQQfR4z3xskXv5hHJW9g0KIESZW6JvUZv7Jn52FfMFUhCYL77KHBtnWGFti0KrKeTHMZVTY5AUVgFAA==}
 
 snapshots:
+
+  '@arkmp/compiler@0.1.1':
+    dependencies:
+      '@arkmp/runtime': link:packages/runtime/runtime
+      chokidar: 4.0.3
+      typescript: 5.9.3
+
+  '@arkmp/runtime@0.1.1': {}
 
   '@babel/code-frame@7.29.7':
     dependencies:
