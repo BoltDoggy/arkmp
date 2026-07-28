@@ -171,11 +171,15 @@ function classifyTemplate(expr: ts.TemplateExpression, sourceFile: ts.SourceFile
   expr.templateSpans.forEach((span, i) => {
     template += `\${${spans[i]}}${span.literal.text}`;
   });
-  return {
+  const result: Expression = {
     kind: 'binding',
     path: paths[0]?.path ?? '',
     template,
   };
+  if (paths.length > 1) {
+    result.paths = paths.map((p) => p.path);
+  }
+  return result;
 }
 
 /** 取对象属性名；不支持的计算属性名返回 null。 */
@@ -192,6 +196,7 @@ function propKey(name: ts.PropertyName): string | null {
 function classifyObjectLiteral(
   expr: ts.ObjectLiteralExpression,
   sourceFile: ts.SourceFile,
+  methodSet?: Set<string>,
 ): Expression {
   const properties: Record<string, Expression> = {};
   for (const prop of expr.properties) {
@@ -203,15 +208,21 @@ function classifyObjectLiteral(
     if (key === null) {
       return { kind: 'static', value: expr.getText(sourceFile) };
     }
-    properties[key] = classifyExpression(prop.initializer, sourceFile);
+    properties[key] = classifyExpression(prop.initializer, sourceFile, methodSet);
   }
   return { kind: 'object', properties };
 }
 
 /**
  * 将 ts 表达式序列化为 IR Expression。
+ * methodSet 传入时（build()/@Builder 上下文），`this.method(args)` 中 method 在集合内
+ * 的调用会被分类为 `method-call`，编译为 WXS 函数调用。
  */
-export function classifyExpression(expr: ts.Expression, sourceFile: ts.SourceFile): Expression {
+export function classifyExpression(
+  expr: ts.Expression,
+  sourceFile: ts.SourceFile,
+  methodSet?: Set<string>,
+): Expression {
   const evaluated = evaluateStatic(expr);
   if (evaluated.ok) return { kind: 'static', value: evaluated.value };
 
@@ -223,12 +234,30 @@ export function classifyExpression(expr: ts.Expression, sourceFile: ts.SourceFil
     return { kind: 'binding', path: direct };
   }
 
-  // 对象字面量：逐属性分类（保留 key→value 结构，供自定义组件 props 拆分）
-  if (ts.isObjectLiteralExpression(expr)) {
-    return classifyObjectLiteral(expr, sourceFile);
+  // 方法调用：`this.method(args)` → { kind: 'method-call', method, args }
+  if (methodSet && ts.isCallExpression(expr)) {
+    const callee = expr.expression;
+    if (
+      ts.isPropertyAccessExpression(callee) &&
+      callee.expression.kind === ts.SyntaxKind.ThisKeyword &&
+      methodSet.has(callee.name.text)
+    ) {
+      return {
+        kind: 'method-call',
+        method: callee.name.text,
+        args: expr.arguments.map((a) => classifyExpression(a, sourceFile, methodSet)),
+      };
+    }
   }
 
-  // 复合表达式：`this.count + 1` → { kind: 'binding', path: 'count', template: '${0} + 1' }
+  // 对象字面量：逐属性分类（保留 key→value 结构，供自定义组件 props 拆分）
+  if (ts.isObjectLiteralExpression(expr)) {
+    return classifyObjectLiteral(expr, sourceFile, methodSet);
+  }
+
+  // 复合表达式：`this.count + 1` → { kind: 'binding', path: 'count', template: '${0} + 1', fullExpression: true }
+  // 多路径表达式：`this.a + this.b` → { kind: 'binding', path: 'a', paths: ['a','b'], template: '${0} + ${1}', fullExpression: true }
+  // 三元表达式：`this.isFull ? 'a' : 'b'` → { kind: 'binding', path: 'isFull', template: "${0} ? 'a' : 'b'", fullExpression: true }
   const paths: BindingPath[] = [];
   collectBindingPaths(expr, paths);
   if (paths.length > 0) {
@@ -236,10 +265,64 @@ export function classifyExpression(expr: ts.Expression, sourceFile: ts.SourceFil
     paths.forEach((p, i) => {
       template = template.replace(p.text, `\${${i}}`);
     });
-    return { kind: 'binding', path: paths[0].path, template };
+    const result: Expression = { kind: 'binding', path: paths[0].path, template, fullExpression: true };
+    if (paths.length > 1) {
+      result.paths = paths.map((p) => p.path);
+    }
+    return result;
   }
 
   // 既不可静态求值也无状态引用（如 `new Date()`）：保留源码文本，
   // 视为编译期常量，由后续阶段决定是否支持。
   return { kind: 'static', value: expr.getText(sourceFile) };
+}
+
+// ── WXS 合规检查 ──
+
+/**
+ * 检查方法体是否符合 WXS 约束（纯函数、不引用 this、ES5 子集）。
+ * WXS 运行在渲染层沙箱中，不能访问组件状态、不能使用 ES6+ 语法。
+ */
+export function isWxsEligible(method: ts.MethodDeclaration): boolean {
+  if (method.body === undefined) return false;
+
+  let eligible = true;
+
+  function visit(node: ts.Node): void {
+    if (!eligible) return;
+
+    // 不能引用 this（WXS 是纯沙箱）
+    if (node.kind === ts.SyntaxKind.ThisKeyword) {
+      eligible = false;
+      return;
+    }
+
+    // 不能使用 ES6+ 语法
+    if (ts.isArrowFunction(node)) {
+      eligible = false;
+      return;
+    }
+    if (ts.isTemplateExpression(node)) {
+      eligible = false;
+      return;
+    }
+    if (ts.isVariableDeclarationList(node)) {
+      const flags = node.flags;
+      if ((flags & ts.NodeFlags.Let) !== 0 || (flags & ts.NodeFlags.Const) !== 0) {
+        eligible = false;
+        return;
+      }
+    }
+
+    // 不能有解构绑定
+    if (ts.isObjectBindingPattern(node) || ts.isArrayBindingPattern(node)) {
+      eligible = false;
+      return;
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  ts.forEachChild(method.body, visit);
+  return eligible;
 }

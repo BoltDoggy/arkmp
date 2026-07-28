@@ -18,7 +18,7 @@
 
 import { errorDiagnostic, warningDiagnostic } from '@arkmp/diagnostics';
 import type { Diagnostic } from '@arkmp/diagnostics';
-import type { Expression, UIChildNode, UINode } from '@arkmp/ir';
+import type { Expression, UIChildNode, UINode, WxsMethodDecl } from '@arkmp/ir';
 import { getComponentMapping, resolveEventMapping } from '@arkmp/mapping-components';
 import type { ComponentMapping } from '@arkmp/mapping-components';
 
@@ -47,6 +47,8 @@ export interface TransformWxmlOptions {
    * 追加进节点的 `style` 属性（静态声明在前）。
    */
   inlineStyles?: Record<string, string>;
+  /** WXS 纯函数方法表（注入为 WXML 头部 `<wxs>` 块） */
+  wxsMethods?: WxsMethodDecl[];
 }
 
 export interface TransformWxmlResult {
@@ -68,7 +70,25 @@ export function transformWxml(
     options.inlineStyles ?? {},
   );
   renderer.renderComponent(buildTree, 0);
-  return { wxml: renderer.lines.join('\n') + '\n', diagnostics: renderer.diagnostics };
+  const body = renderer.lines.join('\n') + '\n';
+  const wxsBlock =
+    options.wxsMethods && options.wxsMethods.length > 0
+      ? buildWxsBlock(options.wxsMethods) + '\n'
+      : '';
+  const wxml = wxsBlock ? wxsBlock + body : body;
+  return { wxml, diagnostics: renderer.diagnostics };
+}
+
+/** 将 WXS 方法表序列化为 `<wxs module="__wxs">` 块。 */
+function buildWxsBlock(methods: WxsMethodDecl[]): string {
+  const fns = methods.map((m) => {
+    const body = m.body
+      .split('\n')
+      .map((line) => `    ${line}`)
+      .join('\n');
+    return `  ${m.name}: function(${m.params.join(', ')}) {\n${body}\n  }`;
+  });
+  return `<wxs module="__wxs">\nmodule.exports = {\n${fns.join(',\n')}\n};\n</wxs>`;
 }
 
 class WxmlRenderer {
@@ -415,7 +435,8 @@ function pickParam(node: UINode, arg: number | string): Expression | undefined {
  * 表达式 → WXML 文本（03 篇「状态绑定表达式」）。
  * - static：字面量原样输出；
  * - binding：纯路径 → `{{path}}`；带模板 → `${0}` 占位替换为 `{{path}}`；
- * - object：不应在文本/属性值上下文出现（仅用于组件 params 拆分），降级为 JSON 文本。
+ * - object：不应在文本/属性值上下文出现（仅用于组件 params 拆分），降级为 JSON 文本；
+ * - method-call：`{{__wxs.method(arg)}}`，参数去除外层 `{{}}`。
  */
 export function expressionText(expr: Expression): string {
   if (expr.kind === 'static') {
@@ -424,10 +445,40 @@ export function expressionText(expr: Expression): string {
   if (expr.kind === 'object') {
     return JSON.stringify(expr.properties);
   }
+  if (expr.kind === 'method-call') {
+    const args = expr.args.map((a) => stripMustache(expressionText(a)));
+    return `{{__wxs.${expr.method}(${args.join(', ')})}}`;
+  }
   if (expr.template === undefined) {
     return `{{${expr.path}}}`;
   }
+  // 整体表达式：`{{path + 1}}`、`{{a + b}}`、`{{cond ? 'x' : 'y'}}`
+  if (expr.fullExpression) {
+    let result = expr.template;
+    if (expr.paths && expr.paths.length > 0) {
+      for (let i = 0; i < expr.paths.length; i++) {
+        result = result.split(`\${${i}}`).join(expr.paths[i]);
+      }
+    } else {
+      result = result.split('${0}').join(expr.path);
+    }
+    return `{{${result}}}`;
+  }
+  // 模板字符串插值：`count={{count}}`、`{{a}} + {{b}}`
+  if (expr.paths && expr.paths.length > 0) {
+    let result = expr.template;
+    for (let i = 0; i < expr.paths.length; i++) {
+      result = result.split(`\${${i}}`).join(`{{${expr.paths[i]}}}`);
+    }
+    return result;
+  }
   return expr.template.split('${0}').join(`{{${expr.path}}}`);
+}
+
+/** `{{count}}` → `count`（WXS 调用参数去除外层 `{{}}`）。 */
+function stripMustache(text: string): string {
+  const m = text.match(/^\{\{(.+)\}\}$/);
+  return m ? m[1] : text;
 }
 
 /** WXML 属性：`name="value"`（值做属性转义）。 */

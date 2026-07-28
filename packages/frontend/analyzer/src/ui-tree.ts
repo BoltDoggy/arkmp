@@ -13,6 +13,8 @@ export interface UITreeContext {
   sourceFile: ts.SourceFile;
   fileName: string;
   diagnostics: Diagnostic[];
+  /** WXS 合格方法名集合（build() 中 this.xxx(args) 调用分类为 method-call） */
+  methodNames?: Set<string>;
 }
 
 function posOf(node: ts.Node, ctx: UITreeContext): { line: number; column: number } {
@@ -157,7 +159,7 @@ function buildChainStatement(
   const node: UINode = {
     type: 'component',
     component: componentName,
-    params: params.map((p) => classifyExpression(p, ctx.sourceFile)),
+    params: params.map((p) => classifyExpression(p, ctx.sourceFile, ctx.methodNames)),
     children: [],
     styleCalls: [],
     eventCalls: [],
@@ -175,7 +177,7 @@ function applyChainCalls(target: UINode, chain: ts.CallExpression[], ctx: UITree
     } else {
       const styleCall: StyleCall = {
         name,
-        args: call.arguments.map((arg) => classifyExpression(arg, ctx.sourceFile)),
+        args: call.arguments.map((arg) => classifyExpression(arg, ctx.sourceFile, ctx.methodNames)),
       };
       target.styleCalls.push(styleCall);
     }
@@ -197,7 +199,7 @@ function buildEventCall(name: string, call: ts.CallExpression, ctx: UITreeContex
 function buildIfNode(statement: ts.IfStatement, ctx: UITreeContext): IfNode {
   const node: IfNode = {
     type: 'if',
-    condition: classifyExpression(statement.expression, ctx.sourceFile),
+    condition: classifyExpression(statement.expression, ctx.sourceFile, ctx.methodNames),
     children: buildBranchChildren(statement.thenStatement, ctx),
     elseChildren: [],
   };
@@ -222,7 +224,7 @@ function buildForEachNode(call: ts.CallExpression, ctx: UITreeContext): ForEachN
   const [itemsArg, generator, keyGenerator] = call.arguments;
   const node: ForEachNode = {
     type: 'foreach',
-    items: itemsArg !== undefined ? classifyExpression(itemsArg, ctx.sourceFile) : { kind: 'static', value: [] },
+    items: itemsArg !== undefined ? classifyExpression(itemsArg, ctx.sourceFile, ctx.methodNames) : { kind: 'static', value: [] },
     itemName: 'item',
     loc: posOf(call, ctx),
     children: [],

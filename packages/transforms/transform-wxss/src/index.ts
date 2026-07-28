@@ -178,11 +178,14 @@ class WxssTransformer {
     // objectFit → image mode 属性；value → input/textarea value 属性
     if (call.name === 'objectFit' || call.name === 'value') return;
 
-    // 动态样式（binding）→ 内联（04 篇「动态样式：留在 style="{{}}"」）
-    const binding = call.args.find((a): a is Extract<Expression, { kind: 'binding' }> => a.kind === 'binding');
-    if (binding !== undefined) {
+    // 动态样式（binding / method-call）→ 内联（04 篇「动态样式：留在 style="{{}}"」）
+    const dynamic = call.args.find(
+      (a): a is Extract<Expression, { kind: 'binding' | 'method-call' }> =>
+        a.kind === 'binding' || a.kind === 'method-call',
+    );
+    if (dynamic !== undefined) {
       if (entry.css !== undefined) {
-        acc.inline.push(`${entry.css}: ${bindingText(binding)}`);
+        acc.inline.push(`${entry.css}: ${expressionText(dynamic)}`);
       } else if (call.name !== 'objectFit') {
         this.diagnostics.push(
           warningDiagnostic(
@@ -431,10 +434,43 @@ class WxssTransformer {
 
 // ── 工具函数 ──
 
-/** binding 表达式 → `{{}}` 文本（与 transform-wxml 同一序列化约定；L2 各链互不依赖，本地实现）。 */
-function bindingText(expr: Extract<Expression, { kind: 'binding' }>): string {
+/** 表达式 → `{{}}` 文本（与 transform-wxml 同一序列化约定；L2 各链互不依赖，本地实现）。 */
+function expressionText(expr: Expression): string {
+  if (expr.kind === 'static') return String(expr.value);
+  if (expr.kind === 'object') return JSON.stringify(expr.properties);
+  if (expr.kind === 'method-call') {
+    const args = expr.args.map((a) => stripMustache(expressionText(a)));
+    return `{{__wxs.${expr.method}(${args.join(', ')})}}`;
+  }
+  // binding
   if (expr.template === undefined) return `{{${expr.path}}}`;
+  // 整体表达式：`{{path + 1}}`、`{{cond ? 'x' : 'y'}}`
+  if (expr.fullExpression) {
+    let result = expr.template;
+    if (expr.paths && expr.paths.length > 0) {
+      for (let i = 0; i < expr.paths.length; i++) {
+        result = result.split(`\${${i}}`).join(expr.paths[i]);
+      }
+    } else {
+      result = result.split('${0}').join(expr.path);
+    }
+    return `{{${result}}}`;
+  }
+  // 模板字符串插值：`count={{count}}`
+  if (expr.paths && expr.paths.length > 0) {
+    let result = expr.template;
+    for (let i = 0; i < expr.paths.length; i++) {
+      result = result.split(`\${${i}}`).join(`{{${expr.paths[i]}}}`);
+    }
+    return result;
+  }
   return expr.template.split('${0}').join(`{{${expr.path}}}`);
+}
+
+/** `{{count}}` → `count`（WXS 调用参数去除外层 `{{}}`）。 */
+function stripMustache(text: string): string {
+  const m = text.match(/^\{\{(.+)\}\}$/);
+  return m ? m[1] : text;
 }
 
 /** 序列化调用参数（用于诊断与注释），如 `.blur(10)` 的 `10`。 */
@@ -443,7 +479,11 @@ function serializeArgs(call: StyleCall): string {
     .map((a) => {
       if (a.kind === 'static') return JSON.stringify(a.value);
       if (a.kind === 'object') return JSON.stringify(a.properties);
-      return a.template === undefined ? `{{${a.path}}}` : `{{${a.template}}}`;
+      if (a.kind === 'method-call') {
+        const args = a.args.map((arg) => stripMustache(expressionText(arg)));
+        return `{{__wxs.${a.method}(${args.join(', ')})}}`;
+      }
+      return expressionText(a);
     })
     .join(', ');
 }

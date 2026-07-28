@@ -12,8 +12,10 @@
  *   如 `` `count=${this.count}` `` → `{ kind: 'binding', path: 'count', template: 'count=${0}' }`
  * - `object`：含绑定字段的对象字面量（自定义组件 props），
  *   如 `{ status: this.status, label: 'OK' }` → 逐属性分类，保留 key 结构。
+ * - `method-call`：build() 中的 `this.method(args)` 调用（纯函数方法），
+ *   编译为 WXS 函数，在 WXML 中通过 `{{__wxs.method(args)}}` 调用。
  */
-export type Expression = StaticExpression | BindingExpression | ObjectExpression;
+export type Expression = StaticExpression | BindingExpression | ObjectExpression | MethodCallExpression;
 
 export interface StaticExpression {
   kind: 'static';
@@ -23,10 +25,18 @@ export interface StaticExpression {
 
 export interface BindingExpression {
   kind: 'binding';
-  /** 状态路径，如 'count'、'form.id' */
+  /** 首要状态路径（向后兼容），如 'count'、'form.id' */
   path: string;
-  /** 模板字符串，用 `${0}` 占位 path 求值结果；纯路径绑定可省略 */
+  /** 模板字符串，用 `${0}`、`${1}`... 占位各路径求值结果；纯路径绑定可省略 */
   template?: string;
+  /** 全部绑定路径（template 含 `${1}` 及以上占位时必需）；单路径时可省略 */
+  paths?: string[];
+  /**
+   * 整体表达式绑定（三元、算术等）：为 true 时整个 template 包在一个 `{{}}` 中，
+   * `${i}` 替换为裸路径名（不套 `{{}}`），如 `${0} + 1` → `{{count + 1}}`。
+   * 模板字符串插值（`` `count=${this.count}` ``）为 false，`${0}` → `{{count}}`。
+   */
+  fullExpression?: boolean;
 }
 
 /**
@@ -38,6 +48,19 @@ export interface ObjectExpression {
   kind: 'object';
   /** 属性名 → 分类后的表达式 */
   properties: Record<string, Expression>;
+}
+
+/**
+ * 方法调用表达式（build() 中的 `this.method(args)`）。
+ * 仅当方法满足 WXS 纯函数约束（不引用 this、ES5 子集）时产生，
+ * transform-wxml 将其编译为 `{{__wxs.method(args)}}` 并在 WXML 头部注入 `<wxs>` 块。
+ */
+export interface MethodCallExpression {
+  kind: 'method-call';
+  /** 方法名，如 'pointLabel' */
+  method: string;
+  /** 参数表达式（每个参数本身也是 Expression） */
+  args: Expression[];
 }
 
 /** 链式样式调用，如 `.fontSize(20)` → `{ name: 'fontSize', args: [static 20] }` */
@@ -149,6 +172,13 @@ export interface MethodDecl {
   body: string;
 }
 
+/** 可提取为 WXS 的纯函数方法（不引用 this、ES5 子集）。 */
+export interface WxsMethodDecl {
+  name: string;
+  params: string[];
+  body: string;
+}
+
 /**
  * 组件模型：编译器核心 IR（02 篇②）。
  * 一个 `.ets` 文件中每个 `struct` 组件对应一个 ComponentModel。
@@ -167,6 +197,8 @@ export interface ComponentModel {
   props: PropField[];
   lifecycle: LifecycleHooks;
   methods: MethodDecl[];
+  /** WXS 纯函数方法（build() 绑定中可调用，编译为 `<wxs>` 模块） */
+  wxsMethods: WxsMethodDecl[];
   /** `build()` 的 UI 结构树 */
   buildTree: UINode;
   /** `@Builder` 方法：方法名 → UI 结构树 */

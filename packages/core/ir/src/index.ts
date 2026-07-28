@@ -6,6 +6,7 @@ export type {
   ForEachNode,
   IfNode,
   LifecycleHooks,
+  MethodCallExpression,
   MethodDecl,
   ObjectExpression,
   PropField,
@@ -14,6 +15,7 @@ export type {
   StyleCall,
   UIChildNode,
   UINode,
+  WxsMethodDecl,
 } from './types';
 export { assignNodeIds, walkModelTrees, walkUIChildren } from './node-ids';
 export { IR_ERROR_CODES, validateIR } from './validate';

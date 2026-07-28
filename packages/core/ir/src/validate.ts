@@ -24,6 +24,11 @@ function validateExpression(expr: Expression, where: string, out: Diagnostic[]):
       validateExpression(value, where, out);
     }
   }
+  if (expr.kind === 'method-call') {
+    for (const arg of expr.args) {
+      validateExpression(arg, where, out);
+    }
+  }
 }
 
 /**

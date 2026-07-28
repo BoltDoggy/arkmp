@@ -209,11 +209,11 @@ describe('控制流归一', () => {
     expect(diagnostics).toHaveLength(0);
     const ifNode = model.buildTree.children[0] as IfNode;
     expect(ifNode.type).toBe('if');
-    expect(ifNode.condition).toEqual({ kind: 'binding', path: 'tab', template: '${0} === 0' });
+    expect(ifNode.condition).toEqual({ kind: 'binding', path: 'tab', template: '${0} === 0', fullExpression: true });
     expect((ifNode.children[0] as UINode).params).toEqual([{ kind: 'static', value: '首页' }]);
     const elseIf = ifNode.elseChildren[0] as IfNode;
     expect(elseIf.type).toBe('if');
-    expect(elseIf.condition).toEqual({ kind: 'binding', path: 'tab', template: '${0} === 1' });
+    expect(elseIf.condition).toEqual({ kind: 'binding', path: 'tab', template: '${0} === 1', fullExpression: true });
     expect((elseIf.elseChildren[0] as UINode).params).toEqual([{ kind: 'static', value: '其他' }]);
   });
 
@@ -280,7 +280,137 @@ describe('表达式分类', () => {
       kind: 'binding',
       path: 'count',
       template: '${0} + 1',
+      fullExpression: true,
     });
+  });
+
+  it('classifyExpression 多路径复合表达式保留全部路径', () => {
+    const { sourceFile } = parse('const x = this.a + this.b;');
+    const decl = sourceFile.statements[0];
+    if (!ts.isVariableStatement(decl)) throw new Error('unreachable');
+    const init = decl.declarationList.declarations[0].initializer;
+    expect(classifyExpression(init!, sourceFile)).toEqual({
+      kind: 'binding',
+      path: 'a',
+      paths: ['a', 'b'],
+      template: '${0} + ${1}',
+      fullExpression: true,
+    });
+  });
+
+  it('classifyExpression 三元表达式标记为 fullExpression', () => {
+    const { sourceFile } = parse("const x = this.isFull ? 'a' : 'b';");
+    const decl = sourceFile.statements[0];
+    if (!ts.isVariableStatement(decl)) throw new Error('unreachable');
+    const init = decl.declarationList.declarations[0].initializer;
+    expect(classifyExpression(init!, sourceFile)).toEqual({
+      kind: 'binding',
+      path: 'isFull',
+      template: "${0} ? 'a' : 'b'",
+      fullExpression: true,
+    });
+  });
+
+  it('classifyExpression 方法调用：传入 methodSet 时分类为 method-call', () => {
+    const { sourceFile } = parse('const x = this.pointLabel(this.points1);');
+    const decl = sourceFile.statements[0];
+    if (!ts.isVariableStatement(decl)) throw new Error('unreachable');
+    const init = decl.declarationList.declarations[0].initializer;
+    const methodSet = new Set(['pointLabel']);
+    expect(classifyExpression(init!, sourceFile, methodSet)).toEqual({
+      kind: 'method-call',
+      method: 'pointLabel',
+      args: [{ kind: 'binding', path: 'points1' }],
+    });
+  });
+
+  it('classifyExpression 方法调用：不传 methodSet 时走 fallback', () => {
+    const { sourceFile } = parse('const x = this.pointLabel(this.points1);');
+    const decl = sourceFile.statements[0];
+    if (!ts.isVariableStatement(decl)) throw new Error('unreachable');
+    const init = decl.declarationList.declarations[0].initializer;
+    // 不传 methodSet → 走复合表达式分支，行为不变
+    const result = classifyExpression(init!, sourceFile);
+    expect(result.kind).toBe('binding');
+  });
+});
+
+describe('WXS 方法提取', () => {
+  it('纯函数方法进入 wxsMethods', () => {
+    const { model, diagnostics } = analyzeSource(
+      ets(`  @State points1: number = 0;
+  pointLabel(p) {
+    if (p === 0) { return '0'; }
+    if (p === 1) { return '15'; }
+    return 'Ad';
+  }
+  build() {
+    Column() {
+      Text(this.pointLabel(this.points1))
+    }
+  }`),
+    );
+    expect(diagnostics).toHaveLength(0);
+    expect(model.wxsMethods).toHaveLength(1);
+    expect(model.wxsMethods[0].name).toBe('pointLabel');
+    expect(model.wxsMethods[0].params).toEqual(['p']);
+  });
+
+  it('引用 this 的方法不进入 wxsMethods', () => {
+    const { model } = analyzeSource(
+      ets(`  @State count: number = 0;
+  refresh() {
+    this.count = this.count + 1;
+  }
+  build() {
+    Column() {
+      Text('x')
+    }
+  }`),
+    );
+    expect(model.wxsMethods).toHaveLength(0);
+  });
+
+  it('含 const 的方法不进入 wxsMethods', () => {
+    const { model } = analyzeSource(
+      ets(`  @State count: number = 0;
+  compute(n) {
+    const result = n * 2;
+    return result;
+  }
+  build() {
+    Column() {
+      Text('x')
+    }
+  }`),
+    );
+    expect(model.wxsMethods).toHaveLength(0);
+  });
+
+  it('build() 中调用 WXS 方法 → Text 参数分类为 method-call', () => {
+    const { model, diagnostics } = analyzeSource(
+      ets(`  @State points1: number = 0;
+  pointLabel(p) {
+    if (p === 0) { return '0'; }
+    return 'Ad';
+  }
+  build() {
+    Column() {
+      Text(this.pointLabel(this.points1))
+    }
+  }`),
+    );
+    expect(diagnostics).toHaveLength(0);
+    const col = model.buildTree;
+    const text = col.children[0] as UINode;
+    expect(text.component).toBe('Text');
+    expect(text.params).toEqual([
+      {
+        kind: 'method-call',
+        method: 'pointLabel',
+        args: [{ kind: 'binding', path: 'points1' }],
+      },
+    ]);
   });
 });
 

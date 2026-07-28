@@ -4,7 +4,7 @@ import type { ComponentModel, LifecycleHooks, UINode } from '@arkmp/ir';
 import { assignNodeIds } from '@arkmp/ir';
 import ts from 'typescript';
 import { DECORATOR_WHITELIST, decoratorName, getDecorators } from './decorators';
-import { classifyExpression } from './expressions';
+import { classifyExpression, isWxsEligible } from './expressions';
 import { bodyText, buildRootTree, type UITreeContext } from './ui-tree';
 
 /** analyzer 阶段诊断码（E1xxx：语法/组件不可编译，见 08 篇诊断码总表）。 */
@@ -74,6 +74,7 @@ export function analyze(sourceFile: ts.SourceFile, fileName: string = sourceFile
     props: [],
     lifecycle: {},
     methods: [],
+    wxsMethods: [],
     buildTree: { type: 'component', component: 'Column', params: [], children: [], styleCalls: [], eventCalls: [] },
     builders: {},
   };
@@ -118,6 +119,14 @@ export function analyze(sourceFile: ts.SourceFile, fileName: string = sourceFile
           params: member.parameters.map((p) => p.name.getText(sourceFile)),
           body: bodyText(member.body, ctx),
         });
+        // WXS 合格的纯函数方法提取到 wxsMethods
+        if (isWxsEligible(member)) {
+          model.wxsMethods.push({
+            name: methodName,
+            params: member.parameters.map((p) => p.name.getText(sourceFile)),
+            body: bodyText(member.body, ctx),
+          });
+        }
       }
     }
   }
@@ -129,6 +138,7 @@ export function analyze(sourceFile: ts.SourceFile, fileName: string = sourceFile
       }),
     );
   } else {
+    ctx.methodNames = new Set(model.wxsMethods.map((m) => m.name));
     model.buildTree = buildRootTree(buildBody.statements, ctx, `组件 ${model.name} 的 build()`);
   }
 
@@ -242,6 +252,7 @@ function emptyModel(): ComponentModel {
     props: [],
     lifecycle: {},
     methods: [],
+    wxsMethods: [],
     buildTree: { type: 'component', component: 'Column', params: [], children: [], styleCalls: [], eventCalls: [] },
     builders: {},
   };

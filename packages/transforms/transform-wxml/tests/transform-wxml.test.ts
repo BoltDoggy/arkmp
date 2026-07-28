@@ -5,8 +5,9 @@ import { WXML_DIAGNOSTIC_CODES, expressionText, transformWxml } from '../src/ind
 // ── IR 构造辅助（内联构造 IR，保持测试自洽） ──
 
 const st = (value: unknown): Expression => ({ kind: 'static', value });
-const bd = (path: string, template?: string): Expression => ({ kind: 'binding', path, template });
+const bd = (path: string, template?: string, paths?: string[], fullExpression?: boolean): Expression => ({ kind: 'binding', path, template, paths, fullExpression });
 const obj = (properties: Record<string, Expression>): Expression => ({ kind: 'object', properties });
+const mc = (method: string, args: Expression[]): Expression => ({ kind: 'method-call', method, args });
 
 interface NodeInit {
   params?: Expression[];
@@ -243,6 +244,56 @@ describe('状态绑定表达式（03 篇）', () => {
     expect(expressionText(st(20))).toBe('20');
     expect(expressionText(bd('count'))).toBe('{{count}}');
     expect(expressionText(bd('count', 'count=${0}!'))).toBe('count={{count}}!');
+  });
+
+  it('expressionText：多路径绑定替换全部占位符', () => {
+    // this.a + this.b → ${0} + ${1} → {{a}} + {{b}}
+    expect(expressionText(bd('a', '${0} + ${1}', ['a', 'b']))).toBe('{{a}} + {{b}}');
+    // this.pointLabel(this.points1) → ${0}(${1}) → {{pointLabel}}({{points1}})
+    expect(expressionText(bd('pointLabel', '${0}(${1})', ['pointLabel', 'points1']))).toBe('{{pointLabel}}({{points1}})');
+    // 三路径：a + b + c
+    expect(expressionText(bd('a', '${0}+${1}+${2}', ['a', 'b', 'c']))).toBe('{{a}}+{{b}}+{{c}}');
+  });
+
+  it('expressionText：fullExpression 整体包在 {{}} 内', () => {
+    // 三元：this.isFull ? '名额已满' : '立即报名'
+    expect(expressionText(bd('isFull', "${0} ? '名额已满' : '立即报名'", undefined, true))).toBe("{{isFull ? '名额已满' : '立即报名'}}");
+    // 算术：this.count + 1
+    expect(expressionText(bd('count', '${0} + 1', undefined, true))).toBe('{{count + 1}}');
+    // 多路径算术：this.a + this.b
+    expect(expressionText(bd('a', '${0} + ${1}', ['a', 'b'], true))).toBe('{{a + b}}');
+    // 比较：this.count === 0
+    expect(expressionText(bd('count', '${0} === 0', undefined, true))).toBe('{{count === 0}}');
+  });
+
+  it('expressionText：method-call → {{__wxs.method(arg)}}', () => {
+    // 单参数：this.pointLabel(this.points1)
+    expect(expressionText(mc('pointLabel', [bd('points1')]))).toBe('{{__wxs.pointLabel(points1)}}');
+    // 双参数
+    expect(expressionText(mc('add', [bd('a'), bd('b')]))).toBe('{{__wxs.add(a, b)}}');
+    // 静态参数
+    expect(expressionText(mc('repeat', [st(3), bd('name')]))).toBe('{{__wxs.repeat(3, name)}}');
+    // 嵌套方法调用
+    expect(expressionText(mc('format', [mc('getDate', [bd('ts')])]))).toBe('{{__wxs.format(__wxs.getDate(ts))}}');
+  });
+
+  it('transformWxml：wxsMethods → WXML 头部注入 <wxs> 块', () => {
+    const tree = root(
+      ui('n1', 'Text', { params: [mc('pointLabel', [bd('points1')])] }),
+    );
+    const { wxml, diagnostics } = transformWxml(tree, {
+      wxsMethods: [
+        {
+          name: 'pointLabel',
+          params: ['p'],
+          body: "if (p === 0) { return '0'; }\nreturn 'Ad';",
+        },
+      ],
+    });
+    expect(diagnostics).toEqual([]);
+    expect(wxml).toContain('<wxs module="__wxs">');
+    expect(wxml).toContain('pointLabel: function(p)');
+    expect(wxml).toContain('{{__wxs.pointLabel(points1)}}');
   });
 });
 

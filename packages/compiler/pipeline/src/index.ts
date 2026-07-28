@@ -95,6 +95,7 @@ export function compile(source: string, options: CompileOptions = {}): CompileRe
   const wxml = transformWxml(model.buildTree, {
     classMap: wxss.classMap,
     inlineStyles: wxss.inlineStyles,
+    wxsMethods: model.wxsMethods,
   });
   const js = transformJs(model, { isPage: options.isPage, eventMethods: events.methods });
   const json = transformJson(model);
