@@ -90,6 +90,15 @@ export interface ForEachNode {
   itemName: string;
   /** 下标变量名（→ `wx:for-index`），可省略 */
   indexName?: string;
+  /**
+   * 键生成信息（→ `wx:key`）。
+   * - 字符串：属性名，生成 `wx:key="attrName"`
+   * - '*this'：以 item 自身作为 key，生成 `wx:key="*this"`
+   * - undefined：未提供键函数，回退 `wx:key="index"` 并发 W3002
+   */
+  keyField?: string;
+  /** 源码位置（预处理后 AST 坐标，pipeline 用 positionMap 回溯到原始 .ets） */
+  loc?: { line: number; column: number };
   children: UIChildNode[];
 }
 

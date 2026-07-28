@@ -66,11 +66,17 @@ export const TRANSFORM_JS_WARNING_CODES = {
   NON_STATIC_INITIAL_VALUE: 'W2002',
 } as const;
 
+export interface EventMethod {
+  body: string;
+  /** ForEach 循环变量名（外层到内层），回调体中需改写为 e.currentTarget.dataset.<name> */
+  loopVars?: string[];
+}
+
 export interface TransformJsOptions {
   /** 强制按页面/组件产物生成；缺省取 `model.isEntry` */
   isPage?: boolean;
-  /** transform-events 抽取的事件方法（方法名 → 回调体源码），见头部合并协议 */
-  eventMethods?: Record<string, string>;
+  /** transform-events 抽取的事件方法（方法名 → EventMethod），见头部合并协议 */
+  eventMethods?: Record<string, EventMethod>;
 }
 
 export interface TransformJsResult {
@@ -160,12 +166,20 @@ export function transformJs(model: ComponentModel, options: TransformJsOptions =
   const links = model.props.filter((p) => p.kind === 'link').map((p) => p.name);
   const rewriteTargets = { states: new Set(states), links: new Set(links) };
 
-  const rewrite = (body: string): string => {
+  const rewrite = (body: string, loopVars?: string[]): string => {
     const result = rewriteBody(body, rewriteTargets);
     for (const warning of result.warnings) {
       diagnostics.push(warningDiagnostic(warning.code, warning.message));
     }
-    return result.code;
+    let code = result.code;
+    // ForEach 循环变量 → e.currentTarget.dataset.<name>
+    // （transform-wxml 在元素上补 data-<name>="{{<name>}}"，runtime 从 dataset 读取）
+    if (loopVars !== undefined && loopVars.length > 0) {
+      for (const v of loopVars) {
+        code = code.replace(new RegExp(`\\b${v}\\b`, 'g'), `e.currentTarget.dataset.${v}`);
+      }
+    }
+    return code;
   };
 
   // ---- methods：生命周期 → @Link 桥接 → 声明方法 → 事件方法 ----
@@ -189,8 +203,10 @@ export function transformJs(model: ComponentModel, options: TransformJsOptions =
     methods.push({ name: method.name, params: method.params, body: rewrite(method.body) });
   }
   if (options.eventMethods !== undefined) {
-    for (const name of Object.keys(options.eventMethods)) {
-      methods.push({ name, params: [], body: rewrite(options.eventMethods[name]) });
+    for (const [name, m] of Object.entries(options.eventMethods)) {
+      // 有循环变量的事件方法（在 ForEach 内）：加 e 参数接收小程序事件对象
+      const params = m.loopVars !== undefined && m.loopVars.length > 0 ? ['e'] : [];
+      methods.push({ name, params, body: rewrite(m.body, m.loopVars) });
     }
   }
 

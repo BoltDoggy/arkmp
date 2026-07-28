@@ -192,12 +192,14 @@ export const COMPONENT_MAPPINGS: readonly ComponentMapping[] = [
     support: 'mapped',
     tag: 'input',
     params: [{ arg: 'placeholder', target: 'attribute', name: 'placeholder' }],
+    styleAttributes: [{ name: 'value', attribute: 'value' }],
     eventOverrides: { onChange: { bind: 'bindinput', suffix: 'change' } },
   },
   {
     arkui: 'TextArea',
     support: 'mapped',
     tag: 'textarea',
+    styleAttributes: [{ name: 'value', attribute: 'value' }],
     eventOverrides: { onChange: { bind: 'bindinput', suffix: 'change' } },
   },
   {

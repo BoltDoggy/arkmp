@@ -200,6 +200,28 @@ describe('控制流翻译（03 篇）', () => {
     });
     expect(wxml).toMatchSnapshot();
   });
+
+  it('ForEach 内的事件：元素补 data-* 属性传递循环变量', () => {
+    const tree = root({
+      type: 'foreach',
+      id: 'n1',
+      items: bd('list'),
+      itemName: 'r',
+      children: [
+        ui('n2', 'Row', {
+          eventCalls: [{ name: 'onClick', body: 'this.goDetail(r.id);' }],
+          children: [ui('n3', 'Text', { params: [bd('r.title')] })],
+        }),
+      ],
+    });
+    const { wxml } = transformWxml(tree);
+    // 有事件的元素上补 data-r="{{r}}"
+    expect(wxml).toContain('data-r="{{r}}"');
+    expect(wxml).toContain('bindtap="__n2_click"');
+    // 无事件的子元素不补 data-*
+    const textLine = wxml.split('\n').find((l) => l.includes('<text'));
+    expect(textLine).not.toContain('data-');
+  });
 });
 
 describe('状态绑定表达式（03 篇）', () => {

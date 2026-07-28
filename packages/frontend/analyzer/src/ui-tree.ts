@@ -217,13 +217,14 @@ function buildBranchChildren(statement: ts.Statement, ctx: UITreeContext): UIChi
   return buildUIChildren([statement], ctx);
 }
 
-/** ForEach(items, (item, index) => { ... }) → ForEachNode。 */
+/** ForEach(items, (item, index) => { ... }, keyGenerator?) → ForEachNode。 */
 function buildForEachNode(call: ts.CallExpression, ctx: UITreeContext): ForEachNode {
-  const [itemsArg, generator] = call.arguments;
+  const [itemsArg, generator, keyGenerator] = call.arguments;
   const node: ForEachNode = {
     type: 'foreach',
     items: itemsArg !== undefined ? classifyExpression(itemsArg, ctx.sourceFile) : { kind: 'static', value: [] },
     itemName: 'item',
+    loc: posOf(call, ctx),
     children: [],
   };
 
@@ -240,6 +241,18 @@ function buildForEachNode(call: ts.CallExpression, ctx: UITreeContext): ForEachN
   }
   if (indexParam !== undefined && ts.isIdentifier(indexParam.name)) {
     node.indexName = indexParam.name.text;
+  }
+
+  // 解析键生成函数：(item) => item.id → wx:key="id"，(item) => item → wx:key="*this"
+  if (keyGenerator !== undefined && ts.isArrowFunction(keyGenerator)) {
+    const keyBody = keyGenerator.body;
+    // (item) => item → wx:key="*this"
+    if (ts.isIdentifier(keyBody)) {
+      node.keyField = '*this';
+    } else if (ts.isPropertyAccessExpression(keyBody) && ts.isIdentifier(keyBody.expression)) {
+      // (item) => item.id → wx:key="id"
+      node.keyField = keyBody.name.text;
+    }
   }
 
   if (ts.isBlock(generator.body)) {

@@ -75,6 +75,8 @@ class WxmlRenderer {
   readonly lines: string[] = [];
   readonly diagnostics: Diagnostic[] = [];
   private anonCounter = 0;
+  /** ForEach 循环变量栈（外层到内层），供 eventAttrs 生成 data-* 属性 */
+  private loopVars: string[] = [];
 
   constructor(
     private readonly indent: string,
@@ -273,6 +275,12 @@ class WxmlRenderer {
   /** 事件调用 → `bindtap="__n7_click"` 属性列表；未收录事件 warning 并跳过。 */
   private eventAttrs(node: UINode, mapping: ComponentMapping | undefined, id: string): string[] {
     const attrs: string[] = [];
+    // ForEach 循环变量 → data-* 属性（事件回调通过 e.currentTarget.dataset 读取）
+    if (node.eventCalls.length > 0 && this.loopVars.length > 0) {
+      for (const v of this.loopVars) {
+        attrs.push(attr(`data-${v}`, `{{${v}}}`));
+      }
+    }
     for (const call of node.eventCalls) {
       const event = resolveEventMapping(mapping, call.name);
       if (event === undefined) {
@@ -359,17 +367,31 @@ class WxmlRenderer {
     if (node.indexName !== undefined) {
       attrs.push(attr('wx:for-index', node.indexName));
     }
-    // IR 不携带键生成函数信息（03 篇：缺失时编译期 warning 并回退 wx:key="index"）
-    attrs.push(attr('wx:key', 'index'));
-    this.diagnostics.push(
-      warningDiagnostic(
-        WXML_DIAGNOSTIC_CODES.FOREACH_KEY_FALLBACK,
-        'ForEach 缺少键生成函数信息，回退 wx:key="index"',
-        { help: '见 docs/arkui-miniprogram/03-component-mapping.md「ForEach → wx:for」' },
-      ),
-    );
+    if (node.keyField !== undefined) {
+      // 键生成函数提供了属性名或 *this
+      attrs.push(attr('wx:key', node.keyField));
+    } else {
+      // 缺少键生成函数，回退 index 并发 W3002
+      attrs.push(attr('wx:key', 'index'));
+      this.diagnostics.push(
+        warningDiagnostic(
+          WXML_DIAGNOSTIC_CODES.FOREACH_KEY_FALLBACK,
+          'ForEach 缺少键生成函数信息，回退 wx:key="index"',
+          {
+            line: node.loc?.line,
+            column: node.loc?.column,
+            help: '见 docs/arkui-miniprogram/03-component-mapping.md「ForEach → wx:for」',
+          },
+        ),
+      );
+    }
     this.lines.push(`${this.pad(depth)}<block ${attrs.join(' ')}>`);
+    // 进入 ForEach 作用域：item + index 变量对子树内的事件回调可见
+    const savedLen = this.loopVars.length;
+    this.loopVars.push(node.itemName);
+    if (node.indexName !== undefined) this.loopVars.push(node.indexName);
     this.renderChildren(node.children, depth + 1);
+    this.loopVars.length = savedLen;
     this.lines.push(`${this.pad(depth)}</block>`);
   }
 }

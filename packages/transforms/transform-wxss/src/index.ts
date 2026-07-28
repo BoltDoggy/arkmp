@@ -174,6 +174,10 @@ class WxssTransformer {
       return;
     }
 
+    // 组件属性桥接（由 transform-wxml 消费为标签属性，不进 WXSS）
+    // objectFit → image mode 属性；value → input/textarea value 属性
+    if (call.name === 'objectFit' || call.name === 'value') return;
+
     // 动态样式（binding）→ 内联（04 篇「动态样式：留在 style="{{}}"」）
     const binding = call.args.find((a): a is Extract<Expression, { kind: 'binding' }> => a.kind === 'binding');
     if (binding !== undefined) {
@@ -189,9 +193,6 @@ class WxssTransformer {
       }
       return;
     }
-
-    // objectFit 由 transform-wxml 转为 image mode 属性，不进 WXSS
-    if (call.name === 'objectFit') return;
 
     const staticArgs = call.args
       .filter((a): a is Extract<Expression, { kind: 'static' }> => a.kind === 'static')

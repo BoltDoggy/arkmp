@@ -146,6 +146,7 @@ export const STYLE_WHITELIST: readonly StyleMappingEntry[] = [
 
   // ── 组件属性桥接（由 transform-wxml 消费为标签属性，WXSS 侧忽略） ──
   { name: 'objectFit', value: 'special', note: 'Image 专用：由 transform-wxml 转为 mode 属性，不进 WXSS' },
+  { name: 'value', value: 'special', note: 'TextInput/TextArea 专用：由 transform-wxml 转为 value 属性，不进 WXSS' },
 ];
 
 /** 修饰符名 → 白名单条目。 */

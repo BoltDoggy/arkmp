@@ -119,10 +119,11 @@ struct TodoView {
     expect(wxml).toContain('wx:for="{{todos}}"');
     expect(wxml).toContain('wx:for-item="item"');
     expect(wxml).toContain('wx:for-index="index"');
-    // ForEach key 回退 warning：全阶段汇总并补上 file
+    // ForEach key 回退 warning：全阶段汇总并补上 file，且带原始源码行号
     const warnings = result.diagnostics.filter((d) => d.level === 'warning');
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toMatchObject({ code: 'W3002', file: 'index.ets' });
+    expect(warnings[0].line).toBeGreaterThan(0);
     expect(snapshotFiles(result)).toMatchSnapshot();
   });
 });

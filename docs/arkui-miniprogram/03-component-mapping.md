@@ -120,6 +120,39 @@ Text(this.isVip ? '会员' : '游客')          →  <text>{{isVip ? '会员' : 
 
 事件回调体抽取为页面/组件方法，命名规则 `__{nodeId}_{event}`，保证稳定可 diff。
 
+### ForEach 内的事件绑定
+
+ForEach 循环体内的事件回调引用循环变量（如 `item`、`index`），但回调体被抽取为顶层方法后该变量不在作用域内。编译器通过 `data-*` 属性 + 事件参数恢复绑定：
+
+```ts
+ForEach(this.list, (r) => {
+  Row() {
+    Text(r.title)
+  }
+  .onClick(() => this.goDetail(r.id))   // ← r 是循环变量
+})
+```
+
+编译为：
+
+```html
+<block wx:for="{{list}}" wx:for-item="r" wx:key="index">
+  <view class="arkmp-row" data-r="{{r}}" bindtap="__n2_click">{{r.title}}</view>
+</block>
+```
+
+```js
+__n2_click(e) {
+  this.goDetail(e.currentTarget.dataset.r.id)   // ← r 从 dataset 读取
+}
+```
+
+转换规则：
+
+- 有事件绑定的元素若处于 ForEach 作用域内，编译器在元素上补 `data-<itemName>="{{<itemName>}}"`（多层嵌套时补全部外层循环变量）。
+- 对应的事件方法声明 `e` 参数，回调体中的循环变量引用改写为 `e.currentTarget.dataset.<name>`。
+- 无事件绑定的元素不补 `data-*`，避免不必要的开销。
+
 ## 自定义组件引用
 
 ```ts

@@ -237,12 +237,46 @@ describe('与 transform-events 的合并协议', () => {
         states: [{ name: 'count', type: 'number', initialValue: { kind: 'static', value: 0 } }],
         methods: [{ name: 'submit', params: [], body: 'this.count = 0;' }],
       }),
-      { eventMethods: { __n7_click: 'this.count++;\nthis.submit();' } },
+      { eventMethods: { __n7_click: { body: 'this.count++;\nthis.submit();' } } },
     );
     expect(diagnostics).toEqual([]);
     expect(js).toContain("__n7_click() {\n      this.__set('count', this.count + 1);\n      this.submit();\n    },");
     // 声明方法在前，事件方法在后
     expect(js.indexOf('submit()')).toBeLessThan(js.indexOf('__n7_click'));
     expect(js).toMatchSnapshot();
+  });
+
+  it('ForEach 内的事件方法：loopVars → e 参数 + 变量引用改写', () => {
+    const { js, diagnostics } = transformJs(
+      model({
+        states: [{ name: 'list', type: 'string[]', initialValue: { kind: 'static', value: [] } }],
+      }),
+      {
+        eventMethods: {
+          __n3_click: { body: 'this.goDetail(r.id);', loopVars: ['r'] },
+        },
+      },
+    );
+    expect(diagnostics).toEqual([]);
+    // 方法带 e 参数
+    expect(js).toContain('__n3_click(e) {');
+    // 循环变量 r 改写为 dataset 读取
+    expect(js).toContain('this.goDetail(e.currentTarget.dataset.r.id);');
+    expect(js).not.toContain('(r.id)');
+  });
+
+  it('ForEach 嵌套：多层循环变量全部改写', () => {
+    const { js } = transformJs(
+      model({}),
+      {
+        eventMethods: {
+          __n5_click: { body: 'this.handle(outer.id, inner.name, index);', loopVars: ['outer', 'inner', 'index'] },
+        },
+      },
+    );
+    expect(js).toContain('__n5_click(e) {');
+    expect(js).toContain('e.currentTarget.dataset.outer.id');
+    expect(js).toContain('e.currentTarget.dataset.inner.name');
+    expect(js).toContain('e.currentTarget.dataset.index');
   });
 });

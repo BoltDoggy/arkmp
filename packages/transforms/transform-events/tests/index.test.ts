@@ -41,7 +41,7 @@ describe('transformEvents', () => {
     );
     const { bindings, methods } = transformEvents(m);
     expect(bindings).toEqual([{ nodeId: 'n1', event: 'onClick', name: 'click', method: '__n1_click' }]);
-    expect(methods).toEqual({ __n1_click: 'this.submit();' });
+    expect(methods).toEqual({ __n1_click: { body: 'this.submit();' } });
   });
 
   it('多事件 / 多节点 / 控制节点嵌套', () => {
@@ -82,7 +82,8 @@ describe('transformEvents', () => {
     const { bindings, methods } = transformEvents(m);
     expect(bindings.map((b) => b.method)).toEqual(['__n2_click', '__n2_touch', '__n4_click']);
     expect(Object.keys(methods)).toEqual(['__n2_click', '__n2_touch', '__n4_click']);
-    expect(methods.__n4_click).toBe('this.pick(item);');
+    expect(methods.__n2_click).toEqual({ body: 'this.a();' });
+    expect(methods.__n4_click).toEqual({ body: 'this.pick(item);', loopVars: ['item'] });
   });
 
   it('@Builder 树中的事件一并收集', () => {
@@ -93,7 +94,7 @@ describe('transformEvents', () => {
     const { bindings, methods } = transformEvents(m);
     expect(bindings).toHaveLength(1);
     expect(bindings[0].method).toBe('__n5_click');
-    expect(methods.__n5_click).toBe('this.more();');
+    expect(methods.__n5_click).toEqual({ body: 'this.more();' });
   });
 
   it('缺失节点 id 时回退 id 确定性分配，且结果可重复', () => {

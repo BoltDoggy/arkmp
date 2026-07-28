@@ -20,8 +20,8 @@
  * - events 先于 js：其 methods 作为 transformJs 的 eventMethods 传入
  *   （赋值改写在 transform-js 统一执行，见 transform-events 头部协议）；
  * - 诊断全阶段汇总：parser 诊断已回溯原始源码行列；analyzer 诊断的行列是
- *   预处理代码坐标，本包用 parse 的 positionMap 回溯；transform 诊断无位置，
- *   统一补上 `file`；
+ *   预处理代码坐标，本包用 parse 的 positionMap 回溯；transform 诊断若携带
+ *   IR 节点 loc（同为预处理坐标），同样用 positionMap 回溯，并统一补上 `file`；
  * - 有 error 级诊断时仍返回部分产物，调用方按 `hasErrors` 判定是否阻断；
  * - 文件名约定：`index.ets` → `index.wxml/wxss/js/json`（目录部分保留）。
  */
@@ -108,7 +108,7 @@ export function compile(source: string, options: CompileOptions = {}): CompileRe
   const diagnostics: Diagnostic[] = [
     ...parsed.diagnostics,
     ...analyzed.diagnostics.map((d) => remapToOriginal(d, parsed.positionMap)),
-    ...wxml.diagnostics,
+    ...wxml.diagnostics.map((d) => remapToOriginal(d, parsed.positionMap)),
     ...wxss.diagnostics,
     ...js.diagnostics,
     ...json.diagnostics,
