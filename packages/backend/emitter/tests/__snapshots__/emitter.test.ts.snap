@@ -13,8 +13,8 @@ exports[`四件套拼装（02 篇⑤） > 产出 wxml/wxss/js/json 四件套，�
 exports[`四件套拼装（02 篇⑤） > 产出 wxml/wxss/js/json 四件套，路径由 fileName 派生 2`] = `
 "=== index.wxss ===
 .arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}
-.arkmp-col{display:flex;flex-direction:column;}
-.arkmp-row{display:flex;flex-direction:row;}
+.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}
+.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
 

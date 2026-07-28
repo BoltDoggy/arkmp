@@ -1,6 +1,6 @@
 {
   "name": "@arkmp/cli",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "ArkMP 命令行入口（ark-mp）",
   "type": "module",
   "bin": {

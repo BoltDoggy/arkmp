@@ -7,8 +7,8 @@ exports[`@Component（非 @Entry） > createComponent + json { component: true }
 
 === child.wxss ===
 .arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}
-.arkmp-col{display:flex;flex-direction:column;}
-.arkmp-row{display:flex;flex-direction:row;}
+.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}
+.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
 
@@ -40,8 +40,8 @@ exports[`@Link 双向绑定 > properties + __set_count 桥接 + 事件方法改�
 
 === index.wxss ===
 .arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}
-.arkmp-col{display:flex;flex-direction:column;}
-.arkmp-row{display:flex;flex-direction:row;}
+.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}
+.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
 
@@ -88,8 +88,8 @@ exports[`if / ForEach 控制流 > wx:if/wx:else + wx:for，key 回退 warning �
 
 === index.wxss ===
 .arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}
-.arkmp-col{display:flex;flex-direction:column;}
-.arkmp-row{display:flex;flex-direction:row;}
+.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}
+.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
 
@@ -121,8 +121,8 @@ exports[`端到端：README 的 Index.ets > 产出四件套且无诊断 1`] = `
 
 === index.wxss ===
 .arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}
-.arkmp-col{display:flex;flex-direction:column;}
-.arkmp-row{display:flex;flex-direction:row;}
+.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}
+.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
 

@@ -8,8 +8,8 @@ ArkUI 布局容器没有直接对应的小程序组件，统一编译为 `<view>
 
 | ArkUI 组件 | WXML 产物 | runtime 基础类 |
 | --- | --- | --- |
-| `Column({ space })` | `<view class="arkmp-col">` | `display:flex; flex-direction:column` |
-| `Row({ space })` | `<view class="arkmp-row">` | `display:flex; flex-direction:row` |
+| `Column({ space })` | `<view class="arkmp-col">` | `display:flex; flex-direction:column; box-sizing:border-box` |
+| `Row({ space })` | `<view class="arkmp-row">` | `display:flex; flex-direction:row; box-sizing:border-box` |
 | `Stack()` | `<view class="arkmp-stack">` | `position:relative`，子节点 `position:absolute` |
 | `Flex({ wrap })` | `<view class="arkmp-flex">` | `display:flex; flex-wrap:wrap` |
 | `Scroll()` | `<scroll-view scroll-y class="arkmp-scroll">` | — |

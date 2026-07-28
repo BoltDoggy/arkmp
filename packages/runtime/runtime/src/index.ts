@@ -63,8 +63,8 @@ export interface NormalizedEvent {
 /** 编译器写入产物 wxss 的内置基础类。 */
 export const BASE_WXSS =
   '.arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}\n' +
-  '.arkmp-col{display:flex;flex-direction:column;}\n' +
-  '.arkmp-row{display:flex;flex-direction:row;}\n' +
+  '.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}\n' +
+  '.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}\n' +
   '.arkmp-text{display:inline;}\n' +
   '.arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}\n';
 

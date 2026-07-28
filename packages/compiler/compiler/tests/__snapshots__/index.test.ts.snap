@@ -39,8 +39,8 @@ createComponent({
 
 === components/user-card.wxss ===
 .arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}
-.arkmp-col{display:flex;flex-direction:column;}
-.arkmp-row{display:flex;flex-direction:row;}
+.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}
+.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
 
@@ -63,8 +63,8 @@ createPage({
 
 === pages/detail/detail.wxss ===
 .arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}
-.arkmp-col{display:flex;flex-direction:column;}
-.arkmp-row{display:flex;flex-direction:row;}
+.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}
+.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
 
@@ -95,8 +95,8 @@ createPage({
 
 === pages/index/index.wxss ===
 .arkmp-page{width:100%;min-height:100vh;box-sizing:border-box;}
-.arkmp-col{display:flex;flex-direction:column;}
-.arkmp-row{display:flex;flex-direction:row;}
+.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}
+.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
 

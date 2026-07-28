@@ -100,7 +100,7 @@ describe('四件套拼装（02 篇⑤）', () => {
   it('wxss 前置 BASE_WXSS 基础类', () => {
     const wxss = byPath(emit(sampleInput())).get('index.wxss') ?? '';
     expect(wxss.startsWith(BASE_WXSS.replace(/\n+$/u, ''))).toBe(true);
-    expect(wxss).toContain('.arkmp-col{display:flex;flex-direction:column;}');
+    expect(wxss).toContain('.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}');
     expect(wxss).toContain('.arkmp-n0 {');
   });
 

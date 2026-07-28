@@ -39,7 +39,7 @@ describe('端到端：README 的 Index.ets', () => {
     // 事件绑定保留
     expect(wxml).toMatch(/bindtap="__n\d+_click"/);
     const wxss = files.get('index.wxss') ?? '';
-    expect(wxss).toContain('.arkmp-col{display:flex;flex-direction:column;}');
+    expect(wxss).toContain('.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}');
     expect(wxss).toContain('font-size: 40rpx;');
   });
 
