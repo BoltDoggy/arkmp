@@ -47,7 +47,7 @@ exports[`基础组件映射（03 篇「基础组件映射表」） > Text 静态
 
 exports[`基础组件映射（03 篇「基础组件映射表」） > TextInput：placeholder + onChange → bindinput 1`] = `
 "<view class="arkmp-col">
-  <input placeholder="请输入" bindinput="__n4_change" />
+  <input class="arkmp-input" placeholder="请输入" bindinput="__n4_change" />
   <switch bindchange="__n5_change" />
 </view>
 "

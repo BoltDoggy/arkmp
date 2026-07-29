@@ -66,7 +66,9 @@ export const BASE_WXSS =
   '.arkmp-col{display:flex;flex-direction:column;box-sizing:border-box;}\n' +
   '.arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}\n' +
   '.arkmp-text{display:inline;}\n' +
-  '.arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}\n';
+  '.arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}\n' +
+  '.arkmp-input{box-sizing:border-box;height:80rpx;line-height:80rpx;}\n' +
+  '.arkmp-textarea{box-sizing:border-box;}\n';
 
 /**
  * ArkUI 页面生命周期 → 小程序 Page 钩子（05 篇映射表）。

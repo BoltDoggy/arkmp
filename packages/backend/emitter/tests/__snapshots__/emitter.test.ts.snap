@@ -17,6 +17,8 @@ exports[`四件套拼装（02 篇⑤） > 产出 wxml/wxss/js/json 四件套，�
 .arkmp-row{display:flex;flex-direction:row;box-sizing:border-box;}
 .arkmp-text{display:inline;}
 .arkmp-btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
+.arkmp-input{box-sizing:border-box;height:80rpx;line-height:80rpx;}
+.arkmp-textarea{box-sizing:border-box;}
 
 .arkmp-n0 {
   width: 100%;

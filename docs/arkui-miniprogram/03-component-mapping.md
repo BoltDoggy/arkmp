@@ -26,8 +26,8 @@ ArkUI 布局容器没有直接对应的小程序组件，统一编译为 `<view>
 | `Text('内容')` | `<text>` | `.fontSize(20)` → `style="font-size:20rpx"`（换算见 04 篇） |
 | `Image($r('app.media.x'))` | `<image>` | `.objectFit(ImageFit.Cover)` → `mode="aspectFill"` |
 | `Button('确定')` | `<view class="arkmp-btn">` 或 `<button>` | 见下文"Button 的特殊处理" |
-| `TextInput({ placeholder })` | `<input>` | `onChange` → `bindinput` |
-| `TextArea()` | `<textarea>` | 同上 |
+| `TextInput({ placeholder })` | `<input class="arkmp-input">` | `onChange` → `bindinput`；`box-sizing:border-box`；默认 `height:80rpx;line-height:80rpx`（40vp，ArkUI API 12+ 非下划线模式默认值；`line-height` 对齐 `height` 以修复原生 `<input>` 首次渲染文字不居中的问题，用户 `.height()` 覆盖） |
+| `TextArea()` | `<textarea class="arkmp-textarea">` | `onChange` → `bindinput`；`box-sizing:border-box`（无默认高度，ArkUI TextArea 需显式 `.height()`） |
 | `Toggle({ type: Switch })` | `<switch>` | `onChange` → `bindchange` |
 | `Checkbox()` | `<checkbox>` | — |
 | `Radio({ value, group })` | `<radio>`（包在 `<radio-group>` 中） | 编译期收集同组 Radio 生成 group 包裹 |
